@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamPK - Live TV Streaming</title>
+    <meta name="description" content="Watch live Pakistani TV channels - News, Entertainment, Sports and more">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-play-circle"></i>
+                <h1>StreamPK</h1>
+            </div>
+            <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle dark/light mode">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Video Player Section -->
+            <section class="player-section">
+                <div class="player-container">
+                    <div id="jwPlayer"></div>
+                    <iframe id="iframePlayer" allowfullscreen allow="autoplay; encrypted-media" style="display: none;"></iframe>
+                    <div class="player-overlay" id="playerOverlay">
+                        <div class="overlay-content">
+                            <i class="fas fa-play-circle"></i>
+                            <p>Click a channel to start watching</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Now Playing Info (YouTube style) -->
+                <div class="now-playing" id="nowPlaying">
+                    <h1 id="currentChannelName" class="video-title">Select a channel</h1>
+                    <div class="channel-info-row">
+                        <div class="channel-info-left">
+                            <div class="channel-avatar" id="channelAvatar">
+                                <i class="fas fa-tv"></i>
+                            </div>
+                            <div class="channel-details">
+                                <span id="currentChannelCategory" class="channel-name-text">Browse channels</span>
+                            </div>
+                        </div>
+                        <div class="channel-actions">
+                            <span class="live-badge"><i class="fas fa-circle"></i> LIVE</span>
+                            <button class="share-btn" id="shareBtn" title="Share">
+                                <i class="fas fa-share"></i> Share
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="keyboard-hints">
+                    <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate</span>
+                    <span><kbd>Enter</kbd> Select</span>
+                    <span><kbd>1-9</kbd> Quick select</span>
+                    <span><kbd>F</kbd> Favorite</span>
+                </div>
+            </section>
+
+            <!-- Channel Sidebar -->
+            <aside class="channel-sidebar">
+                <!-- Favorites Section -->
+                <div class="favorites-section" id="favoritesSection">
+                    <h3><i class="fas fa-star"></i> Favorites</h3>
+                    <div class="favorites-grid" id="favoritesGrid">
+                        <!-- Favorites will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Category Tabs -->
+                <div class="category-tabs" id="categoryTabs">
+                    <button class="category-tab active" data-category="all">All</button>
+                    <!-- Categories will be populated here -->
+                </div>
+
+                <!-- Channel Grid -->
+                <div class="channel-grid" id="channelGrid">
+                    <!-- Channels will be populated here -->
+                </div>
+            </aside>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>StreamPK &copy; 2025</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://jwpsrv.com/library/XpMfzFwiEeOfZhIxOQfUww.js"></script>
+    <script src="js/channels.js"></script>
+    <script src="js/favorites.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
