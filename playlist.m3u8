@@ -24,7 +24,7 @@ https://www.youtube.com/embed/0ozWs13Msus?autoplay=1
 https://www.youtube.com/embed/gi_VtdSkqyk?autoplay=1
 
 #EXTINF:-1 tvg-id="express-news" tvg-name="Express News" tvg-logo="https://i.imgur.com/2ugiEOt.png" group-title="News",Express News
-# DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a053/index.m3u8
+https://www.youtube.com/embed/6i2L8XcQE1o?autoplay=1
 
 #EXTINF:-1 tvg-id="bol-news" tvg-name="BOL News" tvg-logo="https://i.imgur.com/chHLi5u.png" group-title="News",BOL News
 https://www.youtube.com/embed/U60zQv23NjY?autoplay=1
@@ -65,5 +65,3 @@ https://dzkyvlfyge.erbvr.com/PeaceTvUrdu/index.m3u8
 # NOTE: GNN News is available with YouTube Stream
 # EMBED: https://www.youtube.com/embed/8mhPYTm3kEs?autoplay=1
 
-#EXTINF:-1 tvg-id="abb-takk" tvg-name="Abb Takk" group-title="News",Abb Takk
-# DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a051/index.m3u8
