@@ -475,11 +475,18 @@ const App = {
             }
         }
 
-        // Otherwise play first available channel
-        const activeChannels = ChannelManager.getActiveChannels();
-        if (activeChannels.length > 0) {
-            console.log('Playing first active channel:', activeChannels[0].id);
-            this.playChannel(activeChannels[0].id);
+        // Otherwise play Dunya News as default channel
+        const defaultChannel = ChannelManager.getChannelById('dunya-news');
+        if (defaultChannel && (defaultChannel.stream || defaultChannel.embed)) {
+            console.log('Playing default channel: dunya-news');
+            this.playChannel('dunya-news');
+        } else {
+            // Fallback to first available channel if Dunya News not available
+            const activeChannels = ChannelManager.getActiveChannels();
+            if (activeChannels.length > 0) {
+                console.log('Playing first active channel:', activeChannels[0].id);
+                this.playChannel(activeChannels[0].id);
+            }
         }
     }
 };
