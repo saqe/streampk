@@ -78,8 +78,8 @@ const ChannelManager = {
                     i++; // Skip the URL line
                 }
 
-                // Only add if we have required fields
-                if (channel.id && channel.name && channel.stream) {
+                // Only add if we have required fields (stream is optional - channels without streams show as disabled)
+                if (channel.id && channel.name) {
                     channels.push(channel);
                 }
             }
