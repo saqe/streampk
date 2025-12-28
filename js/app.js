@@ -296,6 +296,11 @@ const App = {
 
         VideoPlayer.loadChannel(channel);
 
+        // Update browser URL with channel parameter
+        const url = new URL(window.location);
+        url.searchParams.set('channel', channelId);
+        history.replaceState(null, '', url);
+
         // Update active state in UI
         this.channelCards.forEach(card => {
             card.classList.toggle('active', card.dataset.channelId === channelId);
