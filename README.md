@@ -36,6 +36,17 @@ A modern, responsive web application for watching live Pakistani TV streams. Bui
 | `F` | Toggle favorite |
 | `Space` | Play/Pause |
 
+## Playlist Files
+
+This project includes two playlist files for different use cases:
+
+| File | Purpose |
+|------|---------|
+| `playlist.m3u8` | Used by the web player (includes channels with HTTPS streams and YouTube embeds) |
+| `pakistan-iptv.m3u` | For IPTV players like VLC, Kodi, or other media players (includes HTTP streams) |
+
+**Note:** The web player requires HTTPS streams due to browser security restrictions (mixed content). The `pakistan-iptv.m3u` file includes HTTP streams that work in standalone players but not in browsers.
+
 ## Adding Channels
 
 Channels are loaded from `playlist.m3u8` in standard M3U8 format. Add entries like:
