@@ -17,10 +17,10 @@ https://imob.dunyanews.tv/livehd/_definst_/ngrp:dunyalivehd_2_all/playlist.m3u8
 #EXTINF:-1 tvg-id="ary-news" tvg-name="ARY News" tvg-logo="https://i.postimg.cc/K85QNzjF/arynews.png" group-title="News",ARY News
 https://www.youtube.com/embed/RqUZ2Fv9l8w?autoplay=1
 
-#EXTINF:-1 tvg-id="samaa-news" tvg-name="Samaa News" tvg-logo="https://upload.wikimedia.org/wikipedia/en/2/2e/Samaa_TV_Logo.png" group-title="News",Samaa News
+#EXTINF:-1 tvg-id="samaa-news" tvg-name="Samaa News" tvg-logo="https://upload.wikimedia.org/wikipedia/en/4/45/Samaa_tv_pk.jpg" group-title="News",Samaa News
 https://www.youtube.com/embed/0ozWs13Msus?autoplay=1
 
-#EXTINF:-1 tvg-id="lahore-news" tvg-name="Lahore News" tvg-logo="https://upload.wikimedia.org/wikipedia/en/a/a7/Lahore_News_HD.png" group-title="News",Lahore News
+#EXTINF:-1 tvg-id="lahore-news" tvg-name="Lahore News" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Lahore_News_Logo_%28For_Tv_Screen%29.png/200px-Lahore_News_Logo_%28For_Tv_Screen%29.png" group-title="News",Lahore News
 https://www.youtube.com/embed/gi_VtdSkqyk?autoplay=1
 
 #EXTINF:-1 tvg-id="express-news" tvg-name="Express News" tvg-logo="https://i.imgur.com/2ugiEOt.png" group-title="News",Express News
@@ -58,7 +58,7 @@ https://streaming.madanichannel.tv/static/streaming-playlists/hls/b9790f10-cb0d-
 #EXTINF:-1 tvg-id="peace-tv" tvg-name="Peace TV" tvg-logo="https://static.wikia.nocookie.net/logopedia/images/b/b1/Peacetv.tv.png" group-title="Religious",Peace TV
 https://dzkyvlfyge.erbvr.com/PeaceTvUrdu/index.m3u8
 
-#EXTINF:-1 tvg-id="capital-tv" tvg-name="Capital TV" group-title="News",Capital TV
+#EXTINF:-1 tvg-id="capital-tv" tvg-name="Capital TV" tvg-logo="https://www.lyngsat-logo.com/logo/tv/cc/capital_tv_pk.png" group-title="News",Capital TV
 # DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a02y/index.m3u8
 
 #EXTINF:-1 tvg-id="gnn-news" tvg-name="GNN News" tvg-logo="https://i.imgur.com/VXVnXXi.png" group-title="News",GNN News
