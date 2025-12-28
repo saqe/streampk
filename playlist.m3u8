@@ -2,6 +2,7 @@
 
 #EXTINF:-1 tvg-id="geo-tv" tvg-name="Geo News" tvg-logo="https://i.imgur.com/Op4EsaB.png" group-title="News",Geo News
 https://jk3lz82elw79-hls-live.5centscdn.com/newgeonews/07811dc6c422334ce36a09ff5cd6fe71.sdp/playlist.m3u8
+# ALTERNATIVE: https://jk3lz82elw79-hls-live.5centscdn.com/GEONEWS/3500ba09d0538297440ca620c9dd46bf.sdp/playlist.m3u8
 
 #EXTINF:-1 tvg-id="harpal-geo" tvg-name="Harpal Geo" tvg-logo="https://i.imgur.com/NX3vvAX.png" group-title="Entertainment",Harpal Geo
 https://jk3lz82elw79-hls-live.5centscdn.com/harPalGeo/955ad3298db330b5ee880c2c9e6f23a0.sdp/playlist.m3u8
