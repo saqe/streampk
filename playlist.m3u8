@@ -11,7 +11,8 @@ https://jk3lz82elw79-hls-live.5centscdn.com/harPalGeo/955ad3298db330b5ee880c2c9e
 https://imob.dunyanews.tv/livehd/_definst_/ngrp:dunyalivehd_2_all/playlist.m3u8
 
 #EXTINF:-1 tvg-id="92-news" tvg-name="92 News HD" tvg-logo="https://i.imgur.com/gp1Ao4s.jpeg" group-title="News",92 News HD
-# DISABLED (HTTP mixed content): http://92news.vdn.dstreamone.net/92newshd/92hd/playlist.m3u8
+# NOTE: 92 News is always available with YouTube Stream
+# EMBED: https://www.youtube.com/embed/8uh7YorHaa8?autoplay=1
 
 #EXTINF:-1 tvg-id="ary-news" tvg-name="ARY News" tvg-logo="https://i.postimg.cc/K85QNzjF/arynews.png" group-title="News",ARY News
 # DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a02z/index.m3u8

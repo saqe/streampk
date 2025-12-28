@@ -78,6 +78,15 @@ const ChannelManager = {
                     i++; // Skip the URL line
                 }
 
+                // Check for EMBED comment (for YouTube/iframe embeds)
+                for (let j = i + 1; j < lines.length && j <= i + 3; j++) {
+                    if (lines[j] && lines[j].startsWith('# EMBED:')) {
+                        channel.embed = lines[j].replace('# EMBED:', '').trim();
+                        break;
+                    }
+                    if (lines[j] && lines[j].startsWith('#EXTINF:')) break;
+                }
+
                 // Only add if we have required fields (stream is optional - channels without streams show as disabled)
                 if (channel.id && channel.name) {
                     channels.push(channel);
