@@ -1,8 +1,25 @@
-// Favorites management with localStorage
+/**
+ * @fileoverview Favorites management module for the live streaming application.
+ * Handles persisting and retrieving user's favorite channels using localStorage.
+ */
+
+/**
+ * Singleton manager for favorites persistence.
+ * Stores favorite channel IDs in localStorage and provides CRUD operations.
+ * @namespace
+ */
 const FavoritesManager = {
+    /**
+     * localStorage key for favorites data
+     * @type {string}
+     * @constant
+     */
     STORAGE_KEY: 'liveStreamFavorites',
 
-    // Get all favorite channel IDs
+    /**
+     * Retrieves all favorite channel IDs from localStorage.
+     * @returns {string[]} Array of favorite channel IDs
+     */
     getFavorites() {
         try {
             const stored = localStorage.getItem(this.STORAGE_KEY);
@@ -13,7 +30,10 @@ const FavoritesManager = {
         }
     },
 
-    // Save favorites to localStorage
+    /**
+     * Saves favorite channel IDs to localStorage.
+     * @param {string[]} favorites - Array of channel IDs to save
+     */
     saveFavorites(favorites) {
         try {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(favorites));
@@ -22,7 +42,11 @@ const FavoritesManager = {
         }
     },
 
-    // Add a channel to favorites
+    /**
+     * Adds a channel to favorites if not already present.
+     * @param {string} channelId - Channel ID to add
+     * @returns {boolean} True if added, false if already a favorite
+     */
     addFavorite(channelId) {
         const favorites = this.getFavorites();
         if (!favorites.includes(channelId)) {
@@ -33,7 +57,11 @@ const FavoritesManager = {
         return false;
     },
 
-    // Remove a channel from favorites
+    /**
+     * Removes a channel from favorites.
+     * @param {string} channelId - Channel ID to remove
+     * @returns {boolean} True if removed, false if not found
+     */
     removeFavorite(channelId) {
         const favorites = this.getFavorites();
         const index = favorites.indexOf(channelId);
@@ -45,7 +73,12 @@ const FavoritesManager = {
         return false;
     },
 
-    // Toggle favorite status
+    /**
+     * Toggles favorite status for a channel.
+     * Adds if not a favorite, removes if already a favorite.
+     * @param {string} channelId - Channel ID to toggle
+     * @returns {boolean} True if now a favorite, false if removed
+     */
     toggleFavorite(channelId) {
         if (this.isFavorite(channelId)) {
             this.removeFavorite(channelId);
@@ -56,12 +89,20 @@ const FavoritesManager = {
         }
     },
 
-    // Check if a channel is a favorite
+    /**
+     * Checks if a channel is marked as favorite.
+     * @param {string} channelId - Channel ID to check
+     * @returns {boolean} True if the channel is a favorite
+     */
     isFavorite(channelId) {
         return this.getFavorites().includes(channelId);
     },
 
-    // Get favorite channels (with full channel data)
+    /**
+     * Gets full channel objects for all favorites.
+     * Filters out any favorites whose channels no longer exist.
+     * @returns {Channel[]} Array of favorite channel objects
+     */
     getFavoriteChannels() {
         const favoriteIds = this.getFavorites();
         return favoriteIds
@@ -69,7 +110,9 @@ const FavoritesManager = {
             .filter(channel => channel !== undefined);
     },
 
-    // Clear all favorites
+    /**
+     * Clears all favorites from storage.
+     */
     clearFavorites() {
         this.saveFavorites([]);
     }

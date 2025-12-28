@@ -1,11 +1,43 @@
-// Main Application
+/**
+ * @fileoverview Main application controller for the live streaming application.
+ * Handles UI rendering, event handling, and coordinates between other modules.
+ */
+
+/**
+ * Main application singleton.
+ * Bootstraps the app, manages UI state, and coordinates between modules.
+ * @namespace
+ */
 const App = {
+    /**
+     * localStorage key for theme preference
+     * @type {string}
+     * @constant
+     */
     THEME_KEY: 'liveStreamTheme',
+
+    /**
+     * Currently selected category filter ('all' or category name)
+     * @type {string}
+     */
     currentCategory: 'all',
+
+    /**
+     * Index of keyboard-selected channel (-1 = none)
+     * @type {number}
+     */
     selectedIndex: -1,
+
+    /**
+     * Cached array of channel card DOM elements
+     * @type {HTMLElement[]}
+     */
     channelCards: [],
 
-    // DOM Elements
+    /**
+     * Cached DOM element references
+     * @type {Object}
+     */
     elements: {
         themeToggle: null,
         themeIcon: null,
@@ -15,8 +47,12 @@ const App = {
         favoritesGrid: null
     },
 
-    // Initialize the app
-    init() {
+    /**
+     * Initializes the application.
+     * Loads channels, initializes components, and sets up event listeners.
+     * @async
+     */
+    async init() {
         // Cache DOM elements
         this.elements.themeToggle = document.getElementById('themeToggle');
         this.elements.themeIcon = document.getElementById('themeIcon');
@@ -24,6 +60,9 @@ const App = {
         this.elements.channelGrid = document.getElementById('channelGrid');
         this.elements.favoritesSection = document.getElementById('favoritesSection');
         this.elements.favoritesGrid = document.getElementById('favoritesGrid');
+
+        // Load channels from playlist.m3u8
+        await ChannelManager.loadChannels();
 
         // Initialize components
         VideoPlayer.init();
@@ -39,7 +78,10 @@ const App = {
         console.log(`StreamPK loaded. ${ChannelManager.getActiveChannelCount()}/${ChannelManager.getChannelCount()} channels available.`);
     },
 
-    // Set up event listeners
+    /**
+     * Sets up global event listeners for theme toggle, keyboard navigation, and share.
+     * @private
+     */
     setupEventListeners() {
         // Theme toggle
         this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
@@ -54,7 +96,10 @@ const App = {
         }
     },
 
-    // Share current channel
+    /**
+     * Shares the currently playing channel via Web Share API or clipboard.
+     * Generates a deep link URL with the channel ID parameter.
+     */
     shareChannel() {
         const currentChannel = VideoPlayer.getCurrentChannel();
         if (!currentChannel) {
@@ -76,7 +121,12 @@ const App = {
         }
     },
 
-    // Copy text to clipboard (works on HTTP too)
+    /**
+     * Copies text to clipboard using legacy execCommand for HTTP compatibility.
+     * Falls back to prompt dialog if copy fails.
+     * @param {string} text - Text to copy
+     * @private
+     */
     copyToClipboard(text) {
         const textarea = document.createElement('textarea');
         textarea.value = text;
@@ -95,14 +145,21 @@ const App = {
         document.body.removeChild(textarea);
     },
 
-    // Load theme from localStorage
+    /**
+     * Loads theme preference from localStorage and applies it.
+     * Defaults to dark theme if no preference saved.
+     * @private
+     */
     loadTheme() {
         const savedTheme = localStorage.getItem(this.THEME_KEY) || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
         this.updateThemeIcon(savedTheme);
     },
 
-    // Toggle theme
+    /**
+     * Toggles between dark and light themes.
+     * Persists preference to localStorage.
+     */
     toggleTheme() {
         const html = document.documentElement;
         const currentTheme = html.getAttribute('data-theme');
@@ -113,12 +170,19 @@ const App = {
         this.updateThemeIcon(newTheme);
     },
 
-    // Update theme icon
+    /**
+     * Updates the theme toggle button icon.
+     * @param {string} theme - Current theme ('dark' or 'light')
+     * @private
+     */
     updateThemeIcon(theme) {
         this.elements.themeIcon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
     },
 
-    // Render category tabs
+    /**
+     * Renders category filter tabs from available channels.
+     * Includes an 'All' tab plus one tab per unique category.
+     */
     renderCategoryTabs() {
         const categories = ChannelManager.getCategories();
         const tabsHtml = categories.map(category =>
@@ -136,7 +200,10 @@ const App = {
         });
     },
 
-    // Select a category
+    /**
+     * Selects a category and updates the UI.
+     * @param {string} category - Category to select ('all' or category name)
+     */
     selectCategory(category) {
         this.currentCategory = category;
 

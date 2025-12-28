@@ -1,7 +1,7 @@
 /* Premium Streaming Theme - Apple TV Inspired */
 :root {
     /* Core colors */
-    --bg-primary: #000000;
+    --bg-primary: #121212;
     --bg-secondary: #1c1c1e;
     --bg-tertiary: #2c2c2e;
     --bg-card: #1c1c1e;
@@ -442,7 +442,6 @@ kbd {
     border-radius: 20px;
     padding: 24px;
     border: 1px solid var(--border-subtle);
-    overflow: hidden;
 }
 
 /* Favorites Section */
@@ -535,11 +534,13 @@ kbd {
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     flex: 1;
     padding-right: 4px;
     align-content: start;
     scrollbar-width: thin;
     scrollbar-color: var(--accent) transparent;
+    min-height: 0;
 }
 
 .channel-grid::-webkit-scrollbar {
@@ -868,10 +869,14 @@ kbd {
 
     .channel-sidebar {
         max-height: 50vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .channel-grid {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        overflow-y: visible;
+        flex: none;
     }
 }
 

@@ -1,177 +1,143 @@
-// Channel data management
+/**
+ * @fileoverview Channel data management module for the live streaming application.
+ * Handles loading, parsing, and querying channel data from M3U8 playlists.
+ */
+
+/**
+ * @typedef {Object} Channel
+ * @property {string} id - Unique channel identifier (from tvg-id)
+ * @property {string} name - Display name of the channel (from tvg-name)
+ * @property {string} category - Channel category/group (from group-title)
+ * @property {string} [logo] - URL to channel logo image (from tvg-logo)
+ * @property {string} [stream] - HLS stream URL (.m3u8)
+ * @property {string} [embed] - Alternative iframe embed URL
+ */
+
+/**
+ * Singleton manager for channel data operations.
+ * Loads channels from M3U8 playlist and provides query methods.
+ * @namespace
+ */
 const ChannelManager = {
-    // Channel data - Add your m3u8 streams here
-    channels: [
-        // News Channels
-        {
-            id: 'geo-tv',
-            name: 'Geo News',
-            category: 'News',
-            logo: 'https://i.imgur.com/Op4EsaB.png',
-            stream: 'https://jk3lz82elw79-hls-live.5centscdn.com/newgeonews/07811dc6c422334ce36a09ff5cd6fe71.sdp/playlist.m3u8'
-        },
-        {
-            id: 'harpal-geo',
-            name: 'Harpal Geo',
-            category: 'Entertainment',
-            logo: 'https://i.imgur.com/NX3vvAX.png',
-            stream: '' // Stream currently down
-        },
-        {
-            id: 'dunya-news',
-            name: 'Dunya News',
-            category: 'News',
-            logo: 'https://i.postimg.cc/htHtP9VP/dunyanews.png',
-            stream: 'https://imob.dunyanews.tv/livehd/_definst_/ngrp:dunyalivehd_2_all/playlist.m3u8'
-        },
-        {
-            id: '92-news',
-            name: '92 News HD',
-            category: 'News',
-            logo: 'https://i.imgur.com/gp1Ao4s.jpeg',
-            stream: 'http://92news.vdn.dstreamone.net/92newshd/92hd/playlist.m3u8'
-        },
-        {
-            id: 'ary-news',
-            name: 'ARY News',
-            category: 'News',
-            logo: 'https://i.postimg.cc/K85QNzjF/arynews.png',
-            stream: 'http://66.102.120.18:8000/play/a02z/index.m3u8'
-        },
-        {
-            id: 'express-news',
-            name: 'Express News',
-            category: 'News',
-            logo: 'https://i.imgur.com/2ugiEOt.png',
-            stream: 'http://66.102.120.18:8000/play/a053/index.m3u8'
-        },
-        {
-            id: 'samaa-tv',
-            name: 'Samaa TV',
-            category: 'News',
-            logo: 'https://i.imgur.com/r3U4A1P.png',
-            stream: '' // Stream unavailable
-        },
-        {
-            id: 'bol-news',
-            name: 'BOL News',
-            category: 'News',
-            logo: 'https://i.imgur.com/chHLi5u.png',
-            stream: 'http://66.102.120.18:8000/play/a038/index.m3u8'
-        },
-        {
-            id: 'hum-news',
-            name: 'Hum News',
-            category: 'News',
-            logo: 'https://i.postimg.cc/FRQc1Y23/humnews.png',
-            stream: 'http://66.102.120.18:8000/play/a05e/index.m3u8'
-        },
-        {
-            id: '24-news',
-            name: '24 News HD',
-            category: 'News',
-            logo: 'https://upload.wikimedia.org/wikipedia/en/9/93/24_News_HD_Logo.png',
-            stream: '' // Not playing in JW Player
-        },
+    /**
+     * Array of loaded channel objects
+     * @type {Channel[]}
+     */
+    channels: [],
 
-        // Sports Channels
-        {
-            id: 'ptv-sports',
-            name: 'PTV Sports',
-            category: 'Sports',
-            logo: 'https://i.imgur.com/CPm6GHA.png',
-            stream: 'https://tvsen5.aynaott.com/Ptvsports/index.m3u8'
-        },
-        {
-            id: 'geo-super',
-            name: 'Geo Super',
-            category: 'Sports',
-            logo: 'https://upload.wikimedia.org/wikipedia/en/5/5f/Geo_Super_logo.png',
-            stream: 'http://66.102.120.18:8000/play/a063/index.m3u8'
-        },
-        {
-            id: 'a-sports',
-            name: 'A Sports',
-            category: 'Sports',
-            logo: 'https://i.imgur.com/cl7vugU.png',
-            stream: '' // Stream unavailable
-        },
+    /**
+     * Flag indicating whether channels have been loaded
+     * @type {boolean}
+     */
+    loaded: false,
 
-        // Entertainment Channels
-        {
-            id: 'ary-digital',
-            name: 'ARY Digital',
-            category: 'Entertainment',
-            logo: 'https://i.imgur.com/TVP7g03.png',
-            stream: 'http://66.102.120.18:8000/play/a030/index.m3u8'
-        },
-        {
-            id: 'hum-sitaray',
-            name: 'Hum Sitaray',
-            category: 'Entertainment',
-            logo: 'https://i.imgur.com/D0A0eUJ.png',
-            stream: 'http://66.102.120.18:8000/play/a05i/index.m3u8'
-        },
-        {
-            id: 'geo-kahani',
-            name: 'Geo Kahani',
-            category: 'Entertainment',
-            logo: 'https://i.postimg.cc/7ZmSsPJy/geokahani.png',
-            stream: 'http://66.102.120.18:8000/play/a064/index.m3u8'
-        },
-        {
-            id: 'express-entertainment',
-            name: 'Express Entertainment',
-            category: 'Entertainment',
-            logo: 'https://i.imgur.com/rgHbb8W.png',
-            stream: '' // Stream returns 404
-        },
-        {
-            id: 'aaj-entertainment',
-            name: 'Aaj Entertainment',
-            category: 'Entertainment',
-            logo: 'https://i.imgur.com/WK5Cqap.png',
-            stream: 'http://66.102.120.18:8000/play/a05b/index.m3u8'
-        },
+    /**
+     * Parses M3U8 playlist content and extracts channel data.
+     * Expects EXTINF format with tvg-id, tvg-name, tvg-logo, and group-title attributes.
+     * @param {string} content - Raw M3U8 playlist content
+     * @returns {Channel[]} Array of parsed channel objects
+     */
+    parseM3U8(content) {
+        const channels = [];
+        const lines = content.split('\n').map(line => line.trim()).filter(line => line);
 
-        // Movies Channels
-        {
-            id: 'ary-zindagi',
-            name: 'ARY Zindagi',
-            category: 'Movies',
-            logo: 'https://i.imgur.com/TVP7g03.png',
-            stream: 'http://66.102.120.18:8000/play/a031/index.m3u8'
-        },
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
 
-        // Music Channels
-        {
-            id: '8xm',
-            name: '8XM Music',
-            category: 'Music',
-            logo: 'https://i.imgur.com/KLrfKRn.png',
-            stream: 'http://66.102.120.18:8000/play/a050/index.m3u8'
-        },
-        {
-            id: 'joo-music',
-            name: 'Joo Music',
-            category: 'Music',
-            logo: 'https://i.imgur.com/KHuKQQL.png',
-            stream: 'https://livecdn.live247stream.com/joomusic/tv/playlist.m3u8'
+            if (line.startsWith('#EXTINF:')) {
+                // Parse EXTINF line for metadata
+                const channel = {};
+
+                // Extract tvg-id
+                const idMatch = line.match(/tvg-id="([^"]+)"/);
+                if (idMatch) channel.id = idMatch[1];
+
+                // Extract tvg-name
+                const nameMatch = line.match(/tvg-name="([^"]+)"/);
+                if (nameMatch) channel.name = nameMatch[1];
+
+                // Extract tvg-logo
+                const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                if (logoMatch) channel.logo = logoMatch[1];
+
+                // Extract group-title (category)
+                const groupMatch = line.match(/group-title="([^"]+)"/);
+                if (groupMatch) channel.category = groupMatch[1];
+
+                // Fallback: extract name from end of line after comma
+                if (!channel.name) {
+                    const commaIndex = line.lastIndexOf(',');
+                    if (commaIndex !== -1) {
+                        channel.name = line.substring(commaIndex + 1).trim();
+                    }
+                }
+
+                // Next non-comment line should be the stream URL
+                if (i + 1 < lines.length && !lines[i + 1].startsWith('#')) {
+                    channel.stream = lines[i + 1];
+                    i++; // Skip the URL line
+                }
+
+                // Only add if we have required fields
+                if (channel.id && channel.name && channel.stream) {
+                    channels.push(channel);
+                }
+            }
         }
-    ],
 
-    // Get all channels
+        return channels;
+    },
+
+    /**
+     * Loads channels from the playlist.m3u8 file.
+     * Fetches the playlist from the server and parses it.
+     * Only loads once; subsequent calls return cached data.
+     * @async
+     * @returns {Promise<Channel[]>} Array of loaded channel objects
+     */
+    async loadChannels() {
+        if (this.loaded) return this.channels;
+
+        try {
+            const response = await fetch('playlist.m3u8');
+            if (!response.ok) {
+                throw new Error(`Failed to load playlist: ${response.status}`);
+            }
+            const content = await response.text();
+            this.channels = this.parseM3U8(content);
+            this.loaded = true;
+            console.log(`Loaded ${this.channels.length} channels from playlist.m3u8`);
+        } catch (error) {
+            console.error('Error loading playlist:', error);
+            this.channels = [];
+            this.loaded = true;
+        }
+
+        return this.channels;
+    },
+
+    /**
+     * Gets all loaded channels.
+     * @returns {Channel[]} Array of all channel objects
+     */
     getChannels() {
         return this.channels;
     },
 
-    // Get all unique categories
+    /**
+     * Gets all unique categories from loaded channels.
+     * @returns {string[]} Alphabetically sorted array of category names
+     */
     getCategories() {
         const categories = [...new Set(this.channels.map(ch => ch.category))];
         return categories.sort();
     },
 
-    // Get channels by category
+    /**
+     * Gets channels filtered by category.
+     * @param {string} category - Category name to filter by, or 'all' for all channels
+     * @returns {Channel[]} Array of channels in the specified category
+     */
     getChannelsByCategory(category) {
         if (category === 'all') {
             return this.channels;
@@ -179,22 +145,35 @@ const ChannelManager = {
         return this.channels.filter(ch => ch.category === category);
     },
 
-    // Get channel by ID
+    /**
+     * Finds a channel by its unique identifier.
+     * @param {string} id - Channel ID to search for
+     * @returns {Channel|undefined} The channel object, or undefined if not found
+     */
     getChannelById(id) {
         return this.channels.find(ch => ch.id === id);
     },
 
-    // Get channels that have valid streams
+    /**
+     * Gets channels that have valid stream URLs.
+     * @returns {Channel[]} Array of channels with non-empty stream property
+     */
     getActiveChannels() {
         return this.channels.filter(ch => ch.stream && ch.stream.length > 0);
     },
 
-    // Get channel count
+    /**
+     * Gets the total number of loaded channels.
+     * @returns {number} Total channel count
+     */
     getChannelCount() {
         return this.channels.length;
     },
 
-    // Get active channel count
+    /**
+     * Gets the number of channels with valid streams.
+     * @returns {number} Active channel count
+     */
     getActiveChannelCount() {
         return this.getActiveChannels().length;
     }

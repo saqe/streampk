@@ -1,10 +1,36 @@
-// Video Player with JW Player support
+/**
+ * @fileoverview Video player module for the live streaming application.
+ * Provides a wrapper around JW Player with iframe fallback support.
+ */
+
+/**
+ * Singleton video player controller.
+ * Manages HLS stream playback via JW Player and iframe embeds for alternative sources.
+ * @namespace
+ */
 const VideoPlayer = {
+    /**
+     * JW Player instance (null when using iframe mode)
+     * @type {Object|null}
+     */
     player: null,
+
+    /**
+     * Currently playing channel object
+     * @type {Channel|null}
+     */
     currentChannel: null,
+
+    /**
+     * Flag indicating if player is in iframe embed mode
+     * @type {boolean}
+     */
     isIframeMode: false,
 
-    // DOM Elements
+    /**
+     * Cached DOM element references
+     * @type {Object}
+     */
     elements: {
         playerContainer: null,
         iframe: null,
@@ -15,7 +41,10 @@ const VideoPlayer = {
         channelAvatar: null
     },
 
-    // Initialize the player
+    /**
+     * Initializes the player by caching DOM element references.
+     * Must be called before using other player methods.
+     */
     init() {
         this.elements.playerContainer = document.getElementById('jwPlayer');
         this.elements.iframe = document.getElementById('iframePlayer');
@@ -26,7 +55,11 @@ const VideoPlayer = {
         this.elements.channelAvatar = document.getElementById('channelAvatar');
     },
 
-    // Load and play a channel
+    /**
+     * Loads and plays a channel's stream or embed.
+     * Automatically selects HLS or iframe mode based on channel configuration.
+     * @param {Channel} channel - Channel object to play
+     */
     loadChannel(channel) {
         if (!channel || (!channel.stream && !channel.embed)) {
             this.showError('No stream available for this channel');
@@ -70,7 +103,11 @@ const VideoPlayer = {
         this.hideOverlay();
     },
 
-    // Update the "Now Playing" display
+    /**
+     * Updates the "Now Playing" display with channel information.
+     * @param {Channel} channel - Channel to display
+     * @private
+     */
     updateNowPlaying(channel) {
         this.elements.channelName.textContent = channel.name;
         this.elements.channelCategory.textContent = channel.category;
@@ -83,12 +120,18 @@ const VideoPlayer = {
         }
     },
 
-    // Hide the initial overlay
+    /**
+     * Hides the player overlay (loading/error state).
+     * @private
+     */
     hideOverlay() {
         this.elements.overlay.classList.add('hidden');
     },
 
-    // Show error message
+    /**
+     * Displays an error message in the player overlay.
+     * @param {string} message - Error message to display
+     */
     showError(message) {
         this.elements.overlay.classList.remove('hidden');
         this.elements.overlay.innerHTML = `
@@ -99,21 +142,30 @@ const VideoPlayer = {
         `;
     },
 
-    // Play video
+    /**
+     * Plays the current video (HLS mode only).
+     * No effect in iframe mode.
+     */
     play() {
         if (this.player && !this.isIframeMode) {
             this.player.play();
         }
     },
 
-    // Pause video
+    /**
+     * Pauses the current video (HLS mode only).
+     * No effect in iframe mode.
+     */
     pause() {
         if (this.player && !this.isIframeMode) {
             this.player.pause();
         }
     },
 
-    // Toggle play/pause
+    /**
+     * Toggles between play and pause states (HLS mode only).
+     * No effect in iframe mode.
+     */
     togglePlay() {
         if (this.player && !this.isIframeMode) {
             if (this.player.getState() === 'playing') {
@@ -124,19 +176,30 @@ const VideoPlayer = {
         }
     },
 
-    // Get current channel
+    /**
+     * Gets the currently playing channel.
+     * @returns {Channel|null} Current channel object, or null if none
+     */
     getCurrentChannel() {
         return this.currentChannel;
     },
 
-    // Load iframe embed
+    /**
+     * Loads a channel using iframe embed mode.
+     * @param {Channel} channel - Channel with embed URL to load
+     * @private
+     */
     loadIframeEmbed(channel) {
         this.switchToIframeMode();
         this.elements.iframe.src = channel.embed;
         this.hideOverlay();
     },
 
-    // Switch to video mode (hide iframe, show JW Player)
+    /**
+     * Switches to video mode (JW Player).
+     * Hides iframe and clears its source.
+     * @private
+     */
     switchToVideoMode() {
         this.isIframeMode = false;
         this.elements.playerContainer.style.display = 'block';
@@ -144,7 +207,11 @@ const VideoPlayer = {
         this.elements.iframe.src = '';
     },
 
-    // Switch to iframe mode (hide JW Player, show iframe)
+    /**
+     * Switches to iframe embed mode.
+     * Removes JW Player instance and shows iframe.
+     * @private
+     */
     switchToIframeMode() {
         this.isIframeMode = true;
         this.elements.playerContainer.style.display = 'none';

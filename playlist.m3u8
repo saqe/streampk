@@ -1,0 +1,58 @@
+#EXTM3U
+
+#EXTINF:-1 tvg-id="geo-tv" tvg-name="Geo News" tvg-logo="https://i.imgur.com/Op4EsaB.png" group-title="News",Geo News
+https://jk3lz82elw79-hls-live.5centscdn.com/newgeonews/07811dc6c422334ce36a09ff5cd6fe71.sdp/playlist.m3u8
+
+#EXTINF:-1 tvg-id="harpal-geo" tvg-name="Harpal Geo" tvg-logo="https://i.imgur.com/NX3vvAX.png" group-title="Entertainment",Harpal Geo
+https://jk3lz82elw79-hls-live.5centscdn.com/harPalGeo/955ad3298db330b5ee880c2c9e6f23a0.sdp/playlist.m3u8
+
+#EXTINF:-1 tvg-id="dunya-news" tvg-name="Dunya News" tvg-logo="https://i.postimg.cc/htHtP9VP/dunyanews.png" group-title="News",Dunya News
+https://imob.dunyanews.tv/livehd/_definst_/ngrp:dunyalivehd_2_all/playlist.m3u8
+
+#EXTINF:-1 tvg-id="92-news" tvg-name="92 News HD" tvg-logo="https://i.imgur.com/gp1Ao4s.jpeg" group-title="News",92 News HD
+http://92news.vdn.dstreamone.net/92newshd/92hd/playlist.m3u8
+
+#EXTINF:-1 tvg-id="ary-news" tvg-name="ARY News" tvg-logo="https://i.postimg.cc/K85QNzjF/arynews.png" group-title="News",ARY News
+http://66.102.120.18:8000/play/a02z/index.m3u8
+
+#EXTINF:-1 tvg-id="express-news" tvg-name="Express News" tvg-logo="https://i.imgur.com/2ugiEOt.png" group-title="News",Express News
+http://66.102.120.18:8000/play/a053/index.m3u8
+
+#EXTINF:-1 tvg-id="bol-news" tvg-name="BOL News" tvg-logo="https://i.imgur.com/chHLi5u.png" group-title="News",BOL News
+http://66.102.120.18:8000/play/a038/index.m3u8
+
+#EXTINF:-1 tvg-id="hum-news" tvg-name="Hum News" tvg-logo="https://i.postimg.cc/FRQc1Y23/humnews.png" group-title="News",Hum News
+http://66.102.120.18:8000/play/a05e/index.m3u8
+
+#EXTINF:-1 tvg-id="24-news" tvg-name="24 News HD" tvg-logo="https://upload.wikimedia.org/wikipedia/en/9/93/24_News_HD_Logo.png" group-title="News",24 News HD
+http://66.102.120.18:8000/play/a04v/index.m3u8
+
+#EXTINF:-1 tvg-id="ptv-sports" tvg-name="PTV Sports" tvg-logo="https://i.imgur.com/CPm6GHA.png" group-title="Sports",PTV Sports
+https://tvsen5.aynaott.com/Ptvsports/index.m3u8
+
+#EXTINF:-1 tvg-id="geo-super" tvg-name="Geo Super" tvg-logo="https://upload.wikimedia.org/wikipedia/en/5/5f/Geo_Super_logo.png" group-title="Sports",Geo Super
+http://66.102.120.18:8000/play/a063/index.m3u8
+
+#EXTINF:-1 tvg-id="geo-kahani" tvg-name="Geo Kahani" tvg-logo="https://i.postimg.cc/7ZmSsPJy/geokahani.png" group-title="Entertainment",Geo Kahani
+http://66.102.120.18:8000/play/a064/index.m3u8
+
+#EXTINF:-1 tvg-id="aaj-entertainment" tvg-name="Aaj Entertainment" tvg-logo="https://i.imgur.com/WK5Cqap.png" group-title="Entertainment",Aaj Entertainment
+http://66.102.120.18:8000/play/a05b/index.m3u8
+
+#EXTINF:-1 tvg-id="ary-zindagi" tvg-name="ARY Zindagi" tvg-logo="https://i.imgur.com/TVP7g03.png" group-title="Entertainment",ARY Zindagi
+http://66.102.120.18:8000/play/a031/index.m3u8
+
+#EXTINF:-1 tvg-id="madani-channel" tvg-name="Madani Channel" tvg-logo="https://i.imgur.com/MitLeCJ.png" group-title="Religious",Madani Channel
+https://streaming.madanichannel.tv/static/streaming-playlists/hls/b9790f10-cb0d-4e30-82bf-84a756234e58/master.m3u8
+
+#EXTINF:-1 tvg-id="peace-tv" tvg-name="Peace TV" tvg-logo="https://static.wikia.nocookie.net/logopedia/images/b/b1/Peacetv.tv.png" group-title="Religious",Peace TV
+https://dzkyvlfyge.erbvr.com/PeaceTvUrdu/index.m3u8
+
+#EXTINF:-1 tvg-id="capital-tv" tvg-name="Capital TV" group-title="News",Capital TV
+http://66.102.120.18:8000/play/a02y/index.m3u8
+
+#EXTINF:-1 tvg-id="gnn-news" tvg-name="GNN News" tvg-logo="https://i.imgur.com/VXVnXXi.png" group-title="News",GNN News
+http://66.102.120.18:8000/play/a06p/index.m3u8
+
+#EXTINF:-1 tvg-id="abb-takk" tvg-name="Abb Takk" group-title="News",Abb Takk
+http://66.102.120.18:8000/play/a051/index.m3u8
