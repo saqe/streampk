@@ -56,7 +56,8 @@ https://dzkyvlfyge.erbvr.com/PeaceTvUrdu/index.m3u8
 # DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a02y/index.m3u8
 
 #EXTINF:-1 tvg-id="gnn-news" tvg-name="GNN News" tvg-logo="https://i.imgur.com/VXVnXXi.png" group-title="News",GNN News
-# DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a06p/index.m3u8
+# NOTE: GNN News is available with YouTube Stream
+# EMBED: https://www.youtube.com/embed/8mhPYTm3kEs?autoplay=1
 
 #EXTINF:-1 tvg-id="abb-takk" tvg-name="Abb Takk" group-title="News",Abb Takk
 # DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a051/index.m3u8
