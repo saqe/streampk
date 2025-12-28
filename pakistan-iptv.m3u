@@ -24,6 +24,9 @@ https://streaming.madanichannel.tv/static/streaming-playlists/hls/b9790f10-cb0d-
 #EXTINF:-1 tvg-id="peace-tv" tvg-name="Peace TV" tvg-logo="https://static.wikia.nocookie.net/logopedia/images/b/b1/Peacetv.tv.png" group-title="Religious",Peace TV
 https://dzkyvlfyge.erbvr.com/PeaceTvUrdu/index.m3u8
 
+#EXTINF:-1 tvg-id="ary-qtv" tvg-name="ARY QTV" tvg-logo="https://upload.wikimedia.org/wikipedia/en/6/6d/ARY_QTV.png" group-title="Religious",ARY QTV
+https://7rgnwbg2npl8-hls-push.5centscdn.com/mp4/encoding/final%20high%20res/ZAP%20HIGH%20RES_Encoding.mp4/playlist.m3u8
+
 #EXTINF:-1 tvg-id="ary-news" tvg-name="ARY News" tvg-logo="https://i.postimg.cc/K85QNzjF/arynews.png" group-title="News",ARY News
 http://66.102.120.18:8000/play/a02z/index.m3u8
 
@@ -32,6 +35,9 @@ http://66.102.120.18:8000/play/a030/index.m3u8
 
 #EXTINF:-1 tvg-id="ary-zindagi" tvg-name="ARY Zindagi" tvg-logo="https://i.imgur.com/TVP7g03.png" group-title="Entertainment",ARY Zindagi
 http://66.102.120.18:8000/play/a031/index.m3u8
+
+#EXTINF:-1 tvg-id="ary-musik" tvg-name="ARY Musik" tvg-logo="https://upload.wikimedia.org/wikipedia/en/a/a9/ARY_Musik_Logo.png" group-title="Music",ARY Musik
+https://arymusik.aryzap.com/95660cc99e9748a9676746c1f967c39e/69526722/v1/01847ac7a4930b8ed5aa6ed04aba/01847ac8f5f70b8ed5aa6ed04abd/main.m3u8
 
 #EXTINF:-1 tvg-id="gnn" tvg-name="GNN" tvg-logo="https://i.postimg.cc/3JQxYqJL/gnn.png" group-title="News",GNN
 http://66.102.120.18:8000/play/a06p/index.m3u8
