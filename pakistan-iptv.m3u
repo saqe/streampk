@@ -23,3 +23,9 @@ https://streaming.madanichannel.tv/static/streaming-playlists/hls/b9790f10-cb0d-
 
 #EXTINF:-1 tvg-id="peace-tv" tvg-name="Peace TV" tvg-logo="https://static.wikia.nocookie.net/logopedia/images/b/b1/Peacetv.tv.png" group-title="Religious",Peace TV
 https://dzkyvlfyge.erbvr.com/PeaceTvUrdu/index.m3u8
+
+#EXTINF:-1 tvg-id="ary-news" tvg-name="ARY News" tvg-logo="https://i.postimg.cc/K85QNzjF/arynews.png" group-title="News",ARY News
+http://66.102.120.18:8000/play/a02z/index.m3u8
+
+#EXTINF:-1 tvg-id="ary-zindagi" tvg-name="ARY Zindagi" tvg-logo="https://i.imgur.com/TVP7g03.png" group-title="Entertainment",ARY Zindagi
+http://66.102.120.18:8000/play/a031/index.m3u8
