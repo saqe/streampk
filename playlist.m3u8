@@ -32,10 +32,12 @@ https://imob.dunyanews.tv/livehd/_definst_/ngrp:dunyalivehd_2_all/playlist.m3u8
 https://tvsen5.aynaott.com/Ptvsports/index.m3u8
 
 #EXTINF:-1 tvg-id="geo-super" tvg-name="Geo Super" tvg-logo="https://upload.wikimedia.org/wikipedia/en/5/5f/Geo_Super_logo.png" group-title="Sports",Geo Super
-http://66.102.120.18:8000/play/a063/index.m3u8
+https://jk3lz82elw79-hls-live.5centscdn.com/GeoSuper/074de7e7c226d5c60f8af14c20725352.sdp/playlist.m3u8
+# ALTERNATIVE (HTTP): http://66.102.120.18:8000/play/a063/index.m3u8
 
 #EXTINF:-1 tvg-id="geo-kahani" tvg-name="Geo Kahani" tvg-logo="https://i.postimg.cc/7ZmSsPJy/geokahani.png" group-title="Entertainment",Geo Kahani
-# DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a064/index.m3u8
+https://livecdn.live247stream.com/gawahi/tv/playlist.m3u8
+# ALTERNATIVE (HTTP): http://66.102.120.18:8000/play/a064/index.m3u8
 
 #EXTINF:-1 tvg-id="aaj-entertainment" tvg-name="Aaj Entertainment" tvg-logo="https://i.imgur.com/WK5Cqap.png" group-title="Entertainment",Aaj Entertainment
 # DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a05b/index.m3u8
