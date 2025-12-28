@@ -15,7 +15,13 @@ https://imob.dunyanews.tv/livehd/_definst_/ngrp:dunyalivehd_2_all/playlist.m3u8
 # EMBED: https://www.youtube.com/embed/8uh7YorHaa8?autoplay=1
 
 #EXTINF:-1 tvg-id="ary-news" tvg-name="ARY News" tvg-logo="https://i.postimg.cc/K85QNzjF/arynews.png" group-title="News",ARY News
-# DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a02z/index.m3u8
+https://www.youtube.com/embed/RqUZ2Fv9l8w?autoplay=1
+
+#EXTINF:-1 tvg-id="samaa-news" tvg-name="Samaa News" tvg-logo="https://upload.wikimedia.org/wikipedia/en/2/2e/Samaa_TV_Logo.png" group-title="News",Samaa News
+https://www.youtube.com/embed/0ozWs13Msus?autoplay=1
+
+#EXTINF:-1 tvg-id="lahore-news" tvg-name="Lahore News" tvg-logo="https://upload.wikimedia.org/wikipedia/en/a/a7/Lahore_News_HD.png" group-title="News",Lahore News
+https://www.youtube.com/embed/gi_VtdSkqyk?autoplay=1
 
 #EXTINF:-1 tvg-id="express-news" tvg-name="Express News" tvg-logo="https://i.imgur.com/2ugiEOt.png" group-title="News",Express News
 # DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a053/index.m3u8
