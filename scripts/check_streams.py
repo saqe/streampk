@@ -7,13 +7,14 @@ Usage: scripts/check_streams.py [playlist ...] [--json out.json] [--summary out.
 
 Status meanings:
   ok          connection works
-  restricted  401/403/451 - usually geo/IP blocking of the CI runner (fails only with --strict)
+  restricted  401/403/429/451 - geo/IP blocking or rate limiting of the CI runner (fails only with --strict)
   fail        dead, missing, timed out, or not what it claims to be
 """
 import argparse
 import json
 import re
 import ssl
+import time
 import sys
 import urllib.error
 import urllib.parse
@@ -22,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
-RESTRICTED = {401, 403, 451}
+RESTRICTED = {401, 403, 429, 451}
 
 
 def parse_playlist(path):
@@ -54,15 +55,19 @@ def parse_playlist(path):
 
 
 def fetch(url, timeout, method="GET", max_bytes=256 * 1024):
-    """Return (status, content_type, body_bytes, error). Retries once on transient errors."""
+    """Return (status, content_type, body_bytes, error). Retries on transient errors and 429."""
     err = None
-    for _ in range(2):
+    for attempt in range(3):
         req = urllib.request.Request(url, method=method, headers={"User-Agent": UA, "Accept": "*/*"})
         try:
             with urllib.request.urlopen(req, timeout=timeout, context=ssl.create_default_context()) as r:
                 body = r.read(max_bytes) if method == "GET" else b""
                 return r.status, r.headers.get("Content-Type", ""), body, None
         except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < 2:  # rate limited: back off, then retry
+                time.sleep(3 * (attempt + 1))
+                err = "HTTP 429"
+                continue
             if e.code < 500:
                 return e.code, e.headers.get("Content-Type", ""), b"", None
             err = f"HTTP {e.code}"
@@ -210,7 +215,7 @@ def main():
         if warnings:
             md += ["", "### Warnings (not failures)", *[f"- {w}" for w in warnings]]
         if restricted:
-            md += ["", "_restricted = 401/403/451, likely geo/IP blocking of the CI runner; not counted as failures._"]
+            md += ["", "_restricted = 401/403/429/451, likely geo/IP blocking or rate limiting of the CI runner; not counted as failures._"]
         with open(args.summary, "a") as fh:
             fh.write("\n".join(md) + "\n")
 
