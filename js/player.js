@@ -35,10 +35,7 @@ const VideoPlayer = {
         playerContainer: null,
         iframe: null,
         overlay: null,
-        nowPlaying: null,
-        channelName: null,
-        channelCategory: null,
-        channelAvatar: null
+        overlayError: null
     },
 
     /**
@@ -49,10 +46,8 @@ const VideoPlayer = {
         this.elements.playerContainer = document.getElementById('jwPlayer');
         this.elements.iframe = document.getElementById('iframePlayer');
         this.elements.overlay = document.getElementById('playerOverlay');
-        this.elements.nowPlaying = document.getElementById('nowPlaying');
-        this.elements.channelName = document.getElementById('currentChannelName');
-        this.elements.channelCategory = document.getElementById('currentChannelCategory');
-        this.elements.channelAvatar = document.getElementById('channelAvatar');
+        this.elements.overlayError = document.getElementById('overlayError');
+
     },
 
     /**
@@ -67,7 +62,8 @@ const VideoPlayer = {
         }
 
         this.currentChannel = channel;
-        this.updateNowPlaying(channel);
+        // The player shows its own buffering spinner, so just clear any idle/error screen
+        this.setOverlay('hidden');
 
         // Check if this is an iframe embed channel
         if (channel.embed) {
@@ -78,6 +74,11 @@ const VideoPlayer = {
         // Switch to video mode
         this.switchToVideoMode();
 
+        if (typeof jwplayer !== 'function') {
+            this.showError('The video player failed to load');
+            return;
+        }
+
         // Setup JW Player with the stream
         this.player = jwplayer('jwPlayer').setup({
             title: channel.name,
@@ -86,46 +87,35 @@ const VideoPlayer = {
             height: '100%',
             autostart: true,
             androidhls: true,
-            stretching: 'exactfit',
+            stretching: 'uniform',
             skin: 'seven'
-        });
-
-        // Set up event listeners
-        this.player.on('play', () => {
-            this.hideOverlay();
         });
 
         this.player.on('error', (e) => {
             console.error('JW Player error:', e);
-            this.showError('Stream unavailable');
+            this.showError('This stream is unavailable right now');
         });
 
-        this.hideOverlay();
+        this.player.on('setupError', (e) => {
+            console.error('JW Player setup error:', e);
+            this.showError('This stream could not be loaded');
+        });
     },
 
     /**
-     * Updates the "Now Playing" display with channel information.
-     * @param {Channel} channel - Channel to display
-     * @private
+     * Reloads the current channel.
      */
-    updateNowPlaying(channel) {
-        this.elements.channelName.textContent = channel.name;
-        this.elements.channelCategory.textContent = channel.category;
-
-        // Update avatar with channel logo
-        if (channel.logo) {
-            this.elements.channelAvatar.innerHTML = `<img src="${channel.logo}" alt="${channel.name}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-tv\\'></i>'">`;
-        } else {
-            this.elements.channelAvatar.innerHTML = '<i class="fas fa-tv"></i>';
-        }
+    retry() {
+        if (this.currentChannel) this.loadChannel(this.currentChannel);
     },
 
     /**
-     * Hides the player overlay (loading/error state).
+     * Sets the overlay state: 'idle', 'error' or 'hidden'.
+     * @param {string} state
      * @private
      */
-    hideOverlay() {
-        this.elements.overlay.classList.add('hidden');
+    setOverlay(state) {
+        this.elements.overlay.dataset.state = state;
     },
 
     /**
@@ -133,13 +123,8 @@ const VideoPlayer = {
      * @param {string} message - Error message to display
      */
     showError(message) {
-        this.elements.overlay.classList.remove('hidden');
-        this.elements.overlay.innerHTML = `
-            <div class="overlay-content">
-                <i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i>
-                <p>${message}</p>
-            </div>
-        `;
+        this.elements.overlayError.textContent = message;
+        this.setOverlay('error');
     },
 
     /**
@@ -192,7 +177,6 @@ const VideoPlayer = {
     loadIframeEmbed(channel) {
         this.switchToIframeMode();
         this.elements.iframe.src = channel.embed;
-        this.hideOverlay();
     },
 
     /**
@@ -202,9 +186,10 @@ const VideoPlayer = {
      */
     switchToVideoMode() {
         this.isIframeMode = false;
+        this.elements.playerContainer = document.getElementById('jwPlayer');
         this.elements.playerContainer.style.display = 'block';
-        this.elements.iframe.style.display = 'none';
-        this.elements.iframe.src = '';
+        this.elements.iframe.hidden = true;
+        this.elements.iframe.removeAttribute('src');
     },
 
     /**
@@ -214,11 +199,13 @@ const VideoPlayer = {
      */
     switchToIframeMode() {
         this.isIframeMode = true;
-        this.elements.playerContainer.style.display = 'none';
         if (this.player) {
             this.player.remove();
             this.player = null;
         }
-        this.elements.iframe.style.display = 'block';
+        // JW Player replaces the container element; re-query it
+        this.elements.playerContainer = document.getElementById('jwPlayer');
+        if (this.elements.playerContainer) this.elements.playerContainer.style.display = 'none';
+        this.elements.iframe.hidden = false;
     }
 };
