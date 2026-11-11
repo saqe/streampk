@@ -9,7 +9,7 @@ A modern, responsive web application for watching live Pakistani TV streams. Bui
 
 - **JW Player Integration** - Smooth HLS stream playback with iframe fallback
 - **M3U8 Playlist Support** - Load channels from standard M3U8 playlist files
-- **Category Filtering** - Organize channels by News, Sports, Entertainment, Religious
+- **Channel Guide** - Numbered channels grouped by News, Entertainment, Sports, Religious, with search
 - **Favorites** - Save your favorite channels (persisted in localStorage)
 - **Dark/Light Theme** - Toggle between themes with persistence
 - **Keyboard Navigation** - Full keyboard support for accessibility
@@ -30,10 +30,12 @@ A modern, responsive web application for watching live Pakistani TV streams. Bui
 
 | Key | Action |
 |-----|--------|
-| `↑` `↓` `←` `→` | Navigate channels |
-| `Enter` | Play selected channel |
-| `1-9` | Quick select first 9 channels |
+| `↑` `↓` | Browse channels |
+| `Enter` | Watch selected channel |
+| `0-9` | Jump to a channel number (type two digits for 10+) |
+| `[` `]` | Previous / next channel |
 | `F` | Toggle favorite |
+| `/` | Search channels (`Esc` to clear) |
 | `Space` | Play/Pause |
 
 ## Playlist Files

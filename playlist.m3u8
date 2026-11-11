@@ -1,48 +1,48 @@
 #EXTM3U
 
 #EXTINF:-1 tvg-id="geo-tv" tvg-name="Geo News" tvg-logo="https://i.imgur.com/Op4EsaB.png" group-title="News",Geo News
-https://jk3lz82elw79-hls-live.5centscdn.com/newgeonews/07811dc6c422334ce36a09ff5cd6fe71.sdp/playlist.m3u8
-# ALTERNATIVE: https://jk3lz82elw79-hls-live.5centscdn.com/GEONEWS/3500ba09d0538297440ca620c9dd46bf.sdp/playlist.m3u8
+# EMBED: https://www.youtube.com/embed/t3fvgmDDmdc?autoplay=1
+# DEAD (404, Nov 2026): https://jk3lz82elw79-hls-live.5centscdn.com/newgeonews/07811dc6c422334ce36a09ff5cd6fe71.sdp/playlist.m3u8
 
 #EXTINF:-1 tvg-id="harpal-geo" tvg-name="Harpal Geo" tvg-logo="https://i.imgur.com/NX3vvAX.png" group-title="Entertainment",Harpal Geo
-https://jk3lz82elw79-hls-live.5centscdn.com/harPalGeo/955ad3298db330b5ee880c2c9e6f23a0.sdp/playlist.m3u8
+# DEAD (404, Nov 2026): https://jk3lz82elw79-hls-live.5centscdn.com/harPalGeo/955ad3298db330b5ee880c2c9e6f23a0.sdp/playlist.m3u8
 
-#EXTINF:-1 tvg-id="dunya-news" tvg-name="Dunya News" tvg-logo="https://i.postimg.cc/htHtP9VP/dunyanews.png" group-title="News",Dunya News
+#EXTINF:-1 tvg-id="dunya-news" tvg-name="Dunya News" tvg-logo="https://i.imgur.com/1PbtW0y.png" group-title="News",Dunya News
 https://imob.dunyanews.tv/livehd/_definst_/ngrp:dunyalivehd_2_all/playlist.m3u8
 
 #EXTINF:-1 tvg-id="92-news" tvg-name="92 News HD" tvg-logo="https://i.imgur.com/gp1Ao4s.jpeg" group-title="News",92 News HD
-# NOTE: 92 News is always available with YouTube Stream
-# EMBED: https://www.youtube.com/embed/8uh7YorHaa8?autoplay=1
+# EMBED: https://www.youtube.com/embed/live_stream?channel=UCsgC5cbz3DE2Shh34gNKiog&autoplay=1
 
-#EXTINF:-1 tvg-id="ary-news" tvg-name="ARY News" tvg-logo="https://i.postimg.cc/K85QNzjF/arynews.png" group-title="News",ARY News
-# EMBED: https://www.youtube.com/embed/RqUZ2Fv9l8w?autoplay=1
+#EXTINF:-1 tvg-id="ary-news" tvg-name="ARY News" tvg-logo="https://i.imgur.com/R4KtTbJ.jpg" group-title="News",ARY News
+# EMBED: https://www.youtube.com/embed/BNB47Vi1z0E?autoplay=1
 
 #EXTINF:-1 tvg-id="samaa-news" tvg-name="Samaa News" tvg-logo="https://upload.wikimedia.org/wikipedia/en/4/45/Samaa_tv_pk.jpg" group-title="News",Samaa News
-# EMBED: https://www.youtube.com/embed/0ozWs13Msus?autoplay=1
+# EMBED: https://www.youtube.com/embed/vJuib5n6FVc?autoplay=1
 
-#EXTINF:-1 tvg-id="lahore-news" tvg-name="Lahore News" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Lahore_News_Logo_%28For_Tv_Screen%29.png/200px-Lahore_News_Logo_%28For_Tv_Screen%29.png" group-title="News",Lahore News
+#EXTINF:-1 tvg-id="lahore-news" tvg-name="Lahore News" tvg-logo="https://i.imgur.com/bQfQeEA.jpeg" group-title="News",Lahore News
 https://vcdn.dunyanews.tv/lahorelive/ngrp:lnews_1_all/playlist.m3u8
 
 #EXTINF:-1 tvg-id="express-news" tvg-name="Express News" tvg-logo="https://i.imgur.com/2ugiEOt.png" group-title="News",Express News
-# EMBED: https://www.youtube.com/embed/6i2L8XcQE1o?autoplay=1
+# EMBED: https://www.youtube.com/embed/live_stream?channel=UCTur7oM6mLL0rM2k0znuZpQ&autoplay=1
 
 #EXTINF:-1 tvg-id="bol-news" tvg-name="BOL News" tvg-logo="https://i.imgur.com/chHLi5u.png" group-title="News",BOL News
-# EMBED: https://www.youtube.com/embed/U60zQv23NjY?autoplay=1
+# EMBED: https://www.youtube.com/embed/live_stream?channel=UCz2yxQJZgiB_5elTzqV7FiQ&autoplay=1
 
-#EXTINF:-1 tvg-id="hum-news" tvg-name="Hum News" tvg-logo="https://i.postimg.cc/FRQc1Y23/humnews.png" group-title="News",Hum News
-# EMBED: https://www.youtube.com/embed/-6o5mV_5wGw?autoplay=1
+#EXTINF:-1 tvg-id="hum-news" tvg-name="Hum News" tvg-logo="https://i.imgur.com/9OroocT.png" group-title="News",Hum News
+# EMBED: https://www.youtube.com/embed/live_stream?channel=UC0Um3pnZ2WGBEeoA3BX2sKw&autoplay=1
 
 #EXTINF:-1 tvg-id="24-news" tvg-name="24 News HD" tvg-logo="https://upload.wikimedia.org/wikipedia/en/9/93/24_News_HD_Logo.png" group-title="News",24 News HD
-# DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a04v/index.m3u8
+https://cdn4.mjunoon.tv:8087/streamtest/146M/chunks.m3u8
+# ALTERNATIVE (HTTP): http://66.102.120.18:8000/play/a04v/index.m3u8
 
 #EXTINF:-1 tvg-id="ptv-sports" tvg-name="PTV Sports" tvg-logo="https://i.imgur.com/CPm6GHA.png" group-title="Sports",PTV Sports
-https://tvsen5.aynaott.com/Ptvsports/index.m3u8
+# DEAD (Nov 2026): https://tvsen5.aynaott.com/Ptvsports/index.m3u8
 
 #EXTINF:-1 tvg-id="geo-super" tvg-name="Geo Super" tvg-logo="https://upload.wikimedia.org/wikipedia/en/5/5f/Geo_Super_logo.png" group-title="Sports",Geo Super
-https://jk3lz82elw79-hls-live.5centscdn.com/GeoSuper/074de7e7c226d5c60f8af14c20725352.sdp/playlist.m3u8
+# DEAD (404, Nov 2026): https://jk3lz82elw79-hls-live.5centscdn.com/GeoSuper/074de7e7c226d5c60f8af14c20725352.sdp/playlist.m3u8
 # ALTERNATIVE (HTTP): http://66.102.120.18:8000/play/a063/index.m3u8
 
-#EXTINF:-1 tvg-id="geo-kahani" tvg-name="Geo Kahani" tvg-logo="https://i.postimg.cc/7ZmSsPJy/geokahani.png" group-title="Entertainment",Geo Kahani
+#EXTINF:-1 tvg-id="geo-kahani" tvg-name="Geo Kahani" tvg-logo="https://i.imgur.com/uKYH0IM.png" group-title="Entertainment",Geo Kahani
 https://livecdn.live247stream.com/gawahi/tv/playlist.m3u8
 # ALTERNATIVE (HTTP): http://66.102.120.18:8000/play/a064/index.m3u8
 
@@ -55,13 +55,14 @@ https://livecdn.live247stream.com/gawahi/tv/playlist.m3u8
 #EXTINF:-1 tvg-id="madani-channel" tvg-name="Madani Channel" tvg-logo="https://i.imgur.com/MitLeCJ.png" group-title="Religious",Madani Channel
 https://streaming.madanichannel.tv/static/streaming-playlists/hls/b9790f10-cb0d-4e30-82bf-84a756234e58/master.m3u8
 
-#EXTINF:-1 tvg-id="peace-tv" tvg-name="Peace TV" tvg-logo="https://static.wikia.nocookie.net/logopedia/images/b/b1/Peacetv.tv.png" group-title="Religious",Peace TV
+#EXTINF:-1 tvg-id="peace-tv" tvg-name="Peace TV" tvg-logo="https://i.imgur.com/rjgCM2B.png" group-title="Religious",Peace TV
 https://dzkyvlfyge.erbvr.com/PeaceTvUrdu/index.m3u8
 
-#EXTINF:-1 tvg-id="capital-tv" tvg-name="Capital TV" tvg-logo="https://www.lyngsat-logo.com/logo/tv/cc/capital_tv_pk.png" group-title="News",Capital TV
-# DISABLED (HTTP mixed content): http://66.102.120.18:8000/play/a02y/index.m3u8
+#EXTINF:-1 tvg-id="capital-tv" tvg-name="Capital TV" tvg-logo="https://i.imgur.com/UxAE5O4.png" group-title="News",Capital TV
+https://cdn4.mjunoon.tv:8087/streamtest/111M/chunks.m3u8
+# ALTERNATIVE (HTTP): http://66.102.120.18:8000/play/a02y/index.m3u8
 
 #EXTINF:-1 tvg-id="gnn-news" tvg-name="GNN News" tvg-logo="https://i.imgur.com/VXVnXXi.png" group-title="News",GNN News
 # NOTE: GNN News is available with YouTube Stream
-# EMBED: https://www.youtube.com/embed/8mhPYTm3kEs?autoplay=1
+# EMBED: https://www.youtube.com/embed/live_stream?channel=UC35KuZBNIj4S5Ls0yjY-UHQ&autoplay=1
 

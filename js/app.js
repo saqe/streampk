@@ -4,6 +4,17 @@
  */
 
 /**
+ * Escapes text for safe use inside HTML markup and attributes.
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+}
+
+/**
  * Main application singleton.
  * Bootstraps the app, manages UI state, and coordinates between modules.
  * @namespace
@@ -17,35 +28,46 @@ const App = {
     THEME_KEY: 'liveStreamTheme',
 
     /**
-     * Currently selected category filter ('all' or category name)
+     * Channel played when no ?channel= is given
+     * @type {string}
+     * @constant
+     */
+    DEFAULT_CHANNEL: 'dunya-news',
+
+    /**
+     * Current category filter: 'all', 'favorites' or a category name
      * @type {string}
      */
     currentCategory: 'all',
 
     /**
-     * Index of keyboard-selected channel (-1 = none)
+     * Current search text (lowercased, trimmed)
+     * @type {string}
+     */
+    query: '',
+
+    /**
+     * Index of keyboard-selected row in channelCards (-1 = none)
      * @type {number}
      */
     selectedIndex: -1,
 
     /**
-     * Cached array of channel card DOM elements
+     * Playable channel rows currently rendered, in DOM order
      * @type {HTMLElement[]}
      */
     channelCards: [],
+
+    /** Digits typed for multi-digit channel numbers (e.g. "1", "2" → CH 12) */
+    digitBuffer: '',
+    digitTimer: null,
+    toastTimer: null,
 
     /**
      * Cached DOM element references
      * @type {Object}
      */
-    elements: {
-        themeToggle: null,
-        themeIcon: null,
-        categoryTabs: null,
-        channelGrid: null,
-        favoritesSection: null,
-        favoritesGrid: null
-    },
+    elements: {},
 
     /**
      * Initializes the application.
@@ -53,108 +75,106 @@ const App = {
      * @async
      */
     async init() {
-        // Cache DOM elements
-        this.elements.themeToggle = document.getElementById('themeToggle');
-        this.elements.themeIcon = document.getElementById('themeIcon');
-        this.elements.categoryTabs = document.getElementById('categoryTabs');
-        this.elements.channelGrid = document.getElementById('channelGrid');
-        this.elements.favoritesSection = document.getElementById('favoritesSection');
-        this.elements.favoritesGrid = document.getElementById('favoritesGrid');
+        const $ = (id) => document.getElementById(id);
+        this.elements = {
+            themeToggle: $('themeToggle'),
+            themeIcon: $('themeIcon'),
+            clockTime: $('clockTime'),
+            categoryTabs: $('categoryTabs'),
+            channelGrid: $('channelGrid'),
+            channelCount: $('channelCount'),
+            searchInput: $('searchInput'),
+            channelName: $('currentChannelName'),
+            channelNumber: $('currentChannelNumber'),
+            channelCategory: $('currentChannelCategory'),
+            channelAvatar: $('channelAvatar'),
+            liveBadge: $('liveBadge'),
+            favBtn: $('favBtn'),
+            prevBtn: $('prevBtn'),
+            nextBtn: $('nextBtn'),
+            shareBtn: $('shareBtn'),
+            retryBtn: $('retryBtn'),
+            skipBtn: $('skipBtn'),
+            toast: $('toast'),
+            moreRow: $('moreRow'),
+            moreTitle: $('moreTitle'),
+            moreGrid: $('moreGrid'),
+            stage: document.querySelector('.stage')
+        };
+
+        this.syncThemeUI(document.documentElement.getAttribute('data-theme') || 'dark');
+        this.startClock();
+        this.renderNowPlaying(null);
 
         // Load channels from playlist.m3u8
         await ChannelManager.loadChannels();
 
-        // Initialize components
         VideoPlayer.init();
-        this.loadTheme();
         this.renderCategoryTabs();
         this.renderChannels();
-        this.renderFavorites();
+        this.renderCount();
         this.setupEventListeners();
+        this.trackStageHeight();
 
-        // Auto-play first available channel
+        // Auto-play channel from URL, or the default one
         this.autoPlayFirstChannel();
 
         console.log(`StreamPK loaded. ${ChannelManager.getActiveChannelCount()}/${ChannelManager.getChannelCount()} channels available.`);
     },
 
     /**
-     * Sets up global event listeners for theme toggle, keyboard navigation, and share.
+     * Sets up global event listeners.
      * @private
      */
     setupEventListeners() {
-        // Theme toggle
-        this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
+        const el = this.elements;
 
-        // Keyboard navigation
+        el.themeToggle.addEventListener('click', () => this.toggleTheme());
+        el.shareBtn.addEventListener('click', () => this.shareChannel());
+        el.favBtn.addEventListener('click', () => this.toggleCurrentFavorite());
+        el.prevBtn.addEventListener('click', () => this.stepChannel(-1));
+        el.nextBtn.addEventListener('click', () => this.stepChannel(1));
+        el.skipBtn.addEventListener('click', () => this.stepChannel(1));
+        el.retryBtn.addEventListener('click', () => VideoPlayer.retry());
+        el.moreGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.more-card');
+            if (card) {
+                this.playChannel(card.dataset.channelId);
+                this.scrollRowIntoView(card.dataset.channelId);
+            }
+        });
+
+        el.searchInput.addEventListener('input', () => {
+            this.query = el.searchInput.value.trim().toLowerCase();
+            this.renderChannels();
+        });
+
+        // Category chips (event delegation)
+        el.categoryTabs.addEventListener('click', (e) => {
+            const chip = e.target.closest('.chip');
+            if (chip) this.selectCategory(chip.dataset.category);
+        });
+
+        // Channel rows (event delegation)
+        el.channelGrid.addEventListener('click', (e) => {
+            const fav = e.target.closest('.ch-fav');
+            if (fav) {
+                this.toggleFavorite(fav.dataset.channelId);
+                return;
+            }
+            const play = e.target.closest('.ch-play');
+            if (play && !play.disabled) this.playChannel(play.dataset.channelId);
+
+            const reset = e.target.closest('[data-action="reset"]');
+            if (reset) this.resetFilters();
+        });
+
         document.addEventListener('keydown', (e) => this.handleKeyboard(e));
-
-        // Share button
-        const shareBtn = document.getElementById('shareBtn');
-        if (shareBtn) {
-            shareBtn.addEventListener('click', () => this.shareChannel());
-        }
     },
 
-    /**
-     * Shares the currently playing channel via Web Share API or clipboard.
-     * Generates a deep link URL with the channel ID parameter.
-     */
-    shareChannel() {
-        const currentChannel = VideoPlayer.getCurrentChannel();
-        if (!currentChannel) {
-            alert('No channel is currently playing');
-            return;
-        }
-
-        const shareUrl = `${window.location.origin}${window.location.pathname}?channel=${currentChannel.id}`;
-
-        // Use Web Share API if available (mobile)
-        if (navigator.share) {
-            navigator.share({
-                title: currentChannel.name,
-                url: shareUrl
-            }).catch(() => {});
-        } else {
-            // Fallback: copy to clipboard using textarea trick
-            this.copyToClipboard(shareUrl);
-        }
-    },
-
-    /**
-     * Copies text to clipboard using legacy execCommand for HTTP compatibility.
-     * Falls back to prompt dialog if copy fails.
-     * @param {string} text - Text to copy
-     * @private
-     */
-    copyToClipboard(text) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-
-        try {
-            document.execCommand('copy');
-            alert('Link copied to clipboard!');
-        } catch (err) {
-            prompt('Copy this link:', text);
-        }
-
-        document.body.removeChild(textarea);
-    },
-
-    /**
-     * Loads theme preference from localStorage and applies it.
-     * Defaults to dark theme if no preference saved.
-     * @private
-     */
-    loadTheme() {
-        const savedTheme = localStorage.getItem(this.THEME_KEY) || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        this.updateThemeIcon(savedTheme);
-    },
+    /* ------------------------------------------------------------------ */
+    /* Theme & clock                                                       */
+    /* ------------------------------------------------------------------ */
 
     /**
      * Toggles between dark and light themes.
@@ -162,337 +182,646 @@ const App = {
      */
     toggleTheme() {
         const html = document.documentElement;
-        const currentTheme = html.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
+        const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         html.setAttribute('data-theme', newTheme);
-        localStorage.setItem(this.THEME_KEY, newTheme);
-        this.updateThemeIcon(newTheme);
+        try { localStorage.setItem(this.THEME_KEY, newTheme); } catch (e) { /* storage blocked */ }
+        this.syncThemeUI(newTheme);
     },
 
     /**
-     * Updates the theme toggle button icon.
-     * @param {string} theme - Current theme ('dark' or 'light')
+     * Updates the theme button and browser chrome color for a theme.
+     * @param {string} theme - 'dark' or 'light'
      * @private
      */
-    updateThemeIcon(theme) {
-        this.elements.themeIcon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+    syncThemeUI(theme) {
+        const isDark = theme === 'dark';
+        this.elements.themeIcon.setAttribute('href', isDark ? '#i-sun' : '#i-moon');
+        this.elements.themeToggle.setAttribute('aria-label', `Switch to ${isDark ? 'light' : 'dark'} theme`);
+        this.elements.themeToggle.title = `Switch to ${isDark ? 'light' : 'dark'} theme`;
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', isDark ? '#0a0c0b' : '#f3f4f0');
     },
 
     /**
-     * Renders category filter tabs from available channels.
-     * Includes an 'All' tab plus one tab per unique category.
+     * Shows the current time in Pakistan in the top bar.
+     * @private
+     */
+    startClock() {
+        let format;
+        try {
+            format = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Karachi', hour: 'numeric', minute: '2-digit', hour12: true });
+        } catch (e) {
+            this.elements.clockTime.parentElement.hidden = true;
+            return;
+        }
+        const tick = () => { this.elements.clockTime.textContent = format.format(new Date()); };
+        tick();
+        setInterval(tick, 15000);
+    },
+
+    /**
+     * On narrow screens the player sticks to the top; expose its height so the
+     * guide's search bar can stick right below it.
+     * @private
+     */
+    trackStageHeight() {
+        if (!('ResizeObserver' in window)) return;
+        const narrow = window.matchMedia('(max-width: 1024px)');
+        const update = () => {
+            const h = narrow.matches ? this.elements.stage.offsetHeight : 0;
+            document.documentElement.style.setProperty('--stage-h', `${h}px`);
+        };
+        new ResizeObserver(update).observe(this.elements.stage);
+        narrow.addEventListener?.('change', update);
+        update();
+    },
+
+    /* ------------------------------------------------------------------ */
+    /* Rendering                                                           */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Builds a logo tile. Falls back to a coloured monogram when there is no
+     * logo or the image fails to load.
+     * @param {Channel} channel
+     * @param {string} className - Extra classes for sizing
+     * @returns {string} HTML
+     */
+    logoHtml(channel, className) {
+        const initials = channel.name
+            .split(/\s+/)
+            .filter(w => /[a-z0-9]/i.test(w) && !/^(tv|hd)$/i.test(w))
+            .slice(0, 2)
+            .map(w => w[0].toUpperCase())
+            .join('') || channel.name.slice(0, 2).toUpperCase();
+
+        let hash = 0;
+        for (const c of channel.id) hash = (hash * 31 + c.charCodeAt(0)) % 360;
+        const style = `--mono-bg: hsl(${hash} 42% 32%)`;
+        const mono = `<span class="monogram">${escapeHtml(initials)}</span>`;
+
+        if (!channel.logo) {
+            return `<span class="logo-tile is-fallback ${className}" style="${style}">${mono}</span>`;
+        }
+        return `<span class="logo-tile ${className}" style="${style}">` +
+            `<img src="${escapeHtml(channel.logo)}" alt="" loading="lazy" decoding="async" ` +
+            `onerror="this.parentElement.classList.add('is-fallback');this.remove()">${mono}</span>`;
+    },
+
+    /**
+     * Shows the number of playable channels in the guide header.
+     * @private
+     */
+    renderCount() {
+        const live = ChannelManager.getActiveChannelCount();
+        const total = ChannelManager.getChannelCount();
+        this.elements.channelCount.innerHTML = `<b>${live}</b> live · ${total} total`;
+    },
+
+    /**
+     * Renders category chips with counts. Adds a Favorites chip when there are any.
      */
     renderCategoryTabs() {
-        const categories = ChannelManager.getCategories();
-        const tabsHtml = categories.map(category =>
-            `<button class="category-tab" data-category="${category}">${category}</button>`
-        ).join('');
+        const all = ChannelManager.getChannels();
+        const favCount = FavoritesManager.getFavoriteChannels().length;
 
-        this.elements.categoryTabs.innerHTML =
-            `<button class="category-tab active" data-category="all">All</button>` + tabsHtml;
+        if (this.currentCategory === 'favorites' && favCount === 0) {
+            this.currentCategory = 'all';
+        }
 
-        // Add click handlers
-        this.elements.categoryTabs.querySelectorAll('.category-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                this.selectCategory(tab.dataset.category);
-            });
+        const chip = (key, label, count, icon = '') => `
+            <button class="chip" type="button" data-category="${escapeHtml(key)}"
+                    aria-pressed="${this.currentCategory === key}">
+                ${icon}${escapeHtml(label)}<span class="chip-count">${count}</span>
+            </button>`;
+
+        const chips = [chip('all', 'All', all.length)];
+        if (favCount > 0) {
+            chips.push(chip('favorites', 'Favorites', favCount, '<svg class="icon"><use href="#i-star"/></svg>'));
+        }
+        ChannelManager.getCategories().forEach(cat => {
+            chips.push(chip(cat, cat, ChannelManager.getChannelsByCategory(cat).length));
         });
+
+        this.elements.categoryTabs.innerHTML = chips.join('');
     },
 
     /**
      * Selects a category and updates the UI.
-     * @param {string} category - Category to select ('all' or category name)
+     * @param {string} category - 'all', 'favorites' or a category name
      */
     selectCategory(category) {
         this.currentCategory = category;
-
-        // Update active tab
-        this.elements.categoryTabs.querySelectorAll('.category-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.category === category);
+        this.elements.categoryTabs.querySelectorAll('.chip').forEach(chip => {
+            chip.setAttribute('aria-pressed', String(chip.dataset.category === category));
         });
-
-        // Re-render channels
         this.renderChannels();
-        this.selectedIndex = -1;
+        this.elements.channelGrid.scrollTop = 0;
     },
 
-    // Render channel grid
-    renderChannels() {
-        const channels = ChannelManager.getChannelsByCategory(this.currentCategory);
+    /**
+     * Clears search and category filters.
+     * @private
+     */
+    resetFilters() {
+        this.elements.searchInput.value = '';
+        this.query = '';
+        this.selectCategory('all');
+    },
 
-        if (channels.length === 0) {
+    /**
+     * Renders a single channel row.
+     * @param {Channel} channel
+     * @param {Channel|null} current - Currently playing channel
+     * @returns {string} HTML
+     * @private
+     */
+    rowHtml(channel, current) {
+        const playable = ChannelManager.isPlayable(channel);
+        const isPlaying = current && current.id === channel.id;
+        const isFav = FavoritesManager.isFavorite(channel.id);
+        const id = escapeHtml(channel.id);
+        const name = escapeHtml(channel.name);
+        const num = channel.number ? String(channel.number).padStart(2, '0') : '–';
+
+        return `
+            <div class="ch-row${isPlaying ? ' is-playing' : ''}${playable ? '' : ' is-offline'}"
+                 role="listitem" data-channel-id="${id}">
+                <button class="ch-play" type="button" data-channel-id="${id}"
+                        ${playable ? `aria-label="Watch ${name}, channel ${channel.number}"` : 'disabled aria-disabled="true"'}
+                        ${isPlaying ? 'aria-current="true"' : ''}>
+                    <span class="ch-num">${num}</span>
+                    ${this.logoHtml(channel, 'ch-logo')}
+                    <span class="ch-text">
+                        <span class="ch-name">${name}</span>
+                        <span class="ch-sub">${playable ? escapeHtml(channel.category) : '<span class="offline-tag">Offline</span>' + escapeHtml(channel.category)}</span>
+                    </span>
+                    <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
+                </button>
+                <button class="ch-fav" type="button" data-channel-id="${id}"
+                        aria-pressed="${isFav}" aria-label="${isFav ? 'Remove' : 'Add'} ${name} ${isFav ? 'from' : 'to'} favorites">
+                    <svg class="icon"><use href="#${isFav ? 'i-star' : 'i-star-line'}"/></svg>
+                </button>
+            </div>`;
+    },
+
+    /**
+     * Renders the channel guide for the current category and search query.
+     */
+    renderChannels() {
+        const current = VideoPlayer.getCurrentChannel();
+        const q = this.query;
+
+        let base;
+        if (this.currentCategory === 'all') base = ChannelManager.getChannels();
+        else if (this.currentCategory === 'favorites') base = FavoritesManager.getFavoriteChannels();
+        else base = ChannelManager.getChannelsByCategory(this.currentCategory);
+
+        const matches = (ch) => !q ||
+            ch.name.toLowerCase().includes(q) ||
+            (ch.category || '').toLowerCase().includes(q) ||
+            (ch.number && String(ch.number) === q.replace(/^0+/, ''));
+
+        const list = base.filter(matches);
+
+        // Build groups: [{ label, icon, channels }]
+        const groups = [];
+        const playable = list.filter(ch => ChannelManager.isPlayable(ch));
+        const offline = list.filter(ch => !ChannelManager.isPlayable(ch));
+
+        if (this.currentCategory === 'all' && !q) {
+            const favs = FavoritesManager.getFavoriteChannels();
+            if (favs.length) groups.push({ label: 'Favorites', star: true, channels: favs });
+            ChannelManager.getCategories().forEach(cat => {
+                const inCat = playable.filter(ch => ch.category === cat);
+                if (inCat.length) groups.push({ label: cat, channels: inCat });
+            });
+        } else {
+            groups.push({ label: null, channels: playable });
+        }
+        if (offline.length) groups.push({ label: 'Offline', channels: offline });
+
+        if (list.length === 0) {
+            const message = q
+                ? `No channels match “${escapeHtml(this.elements.searchInput.value.trim())}”`
+                : 'No channels here yet';
             this.elements.channelGrid.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-tv"></i>
-                    <p>No channels in this category</p>
-                </div>
-            `;
+                <div class="empty">
+                    <svg class="icon"><use href="#i-tv"/></svg>
+                    <p>${message}</p>
+                    ${q || this.currentCategory !== 'all' ? '<button type="button" data-action="reset">Show all channels</button>' : ''}
+                </div>`;
             this.channelCards = [];
+            this.selectedIndex = -1;
             return;
         }
 
-        const currentChannel = VideoPlayer.getCurrentChannel();
+        this.elements.channelGrid.innerHTML = groups.map(group => `
+            ${group.label ? `<div class="group-label" role="presentation">${group.star ? '<svg class="icon"><use href="#i-star"/></svg>' : ''}${escapeHtml(group.label)}</div>` : ''}
+            ${group.channels.map(ch => this.rowHtml(ch, current)).join('')}
+        `).join('');
 
-        this.elements.channelGrid.innerHTML = channels.map((channel, index) => {
-            const isActive = currentChannel && currentChannel.id === channel.id;
-            const isFavorite = FavoritesManager.isFavorite(channel.id);
-            const hasStream = (channel.stream && channel.stream.length > 0) || channel.embed;
-
-            return `
-                <div class="channel-card ${isActive ? 'active' : ''} ${!hasStream ? 'no-stream' : ''}"
-                     data-channel-id="${channel.id}"
-                     data-index="${index}">
-                    <button class="favorite-btn ${isFavorite ? 'is-favorite' : ''}"
-                            data-channel-id="${channel.id}"
-                            title="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">
-                        <i class="fas fa-star"></i>
-                    </button>
-                    <div class="channel-logo">
-                        ${channel.logo
-                            ? `<img src="${channel.logo}" alt="${channel.name}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-tv\\'></i>'">`
-                            : '<i class="fas fa-tv"></i>'}
-                    </div>
-                    <span class="channel-name" title="${channel.name}">${channel.name}</span>
-                    <span class="channel-category">${channel.category}</span>
-                </div>
-            `;
-        }).join('');
-
-        // Cache channel cards
-        this.channelCards = Array.from(this.elements.channelGrid.querySelectorAll('.channel-card'));
-
-        // Add click handlers
-        this.channelCards.forEach(card => {
-            card.addEventListener('click', (e) => {
-                // Check if favorite button was clicked
-                if (e.target.closest('.favorite-btn')) {
-                    return;
-                }
-                const channelId = card.dataset.channelId;
-                this.playChannel(channelId);
-            });
-        });
-
-        // Add favorite button handlers
-        this.elements.channelGrid.querySelectorAll('.favorite-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const channelId = btn.dataset.channelId;
-                this.toggleFavorite(channelId);
-            });
-        });
+        this.channelCards = Array.from(this.elements.channelGrid.querySelectorAll('.ch-row:not(.is-offline)'));
+        this.selectedIndex = -1;
     },
 
-    // Play a channel
+    /**
+     * Updates the now-playing bar for a channel (or the empty state).
+     * @param {Channel|null} channel
+     * @private
+     */
+    renderNowPlaying(channel) {
+        const el = this.elements;
+
+        if (!channel) {
+            el.channelName.textContent = 'StreamPK';
+            el.channelNumber.textContent = '';
+            el.channelCategory.textContent = 'No channel selected';
+            el.liveBadge.hidden = true;
+            el.channelAvatar.className = 'now-logo logo-tile is-empty';
+            el.channelAvatar.innerHTML = '<svg class="icon"><use href="#i-tv"/></svg>';
+            el.favBtn.disabled = true;
+            el.shareBtn.disabled = true;
+            return;
+        }
+
+        el.channelName.textContent = channel.name;
+        el.channelNumber.textContent = channel.number ? `CH ${String(channel.number).padStart(2, '0')}` : '';
+        el.channelCategory.textContent = channel.category;
+        el.liveBadge.hidden = false;
+        el.favBtn.disabled = false;
+        el.shareBtn.disabled = false;
+
+        const tmp = document.createElement('div');
+        tmp.innerHTML = this.logoHtml(channel, 'now-logo');
+        const logo = tmp.firstElementChild;
+        logo.id = 'channelAvatar';
+        el.channelAvatar.replaceWith(logo);
+        el.channelAvatar = logo;
+        el.channelAvatar.setAttribute('aria-hidden', 'true');
+
+        this.renderFavButton();
+        this.renderMore(channel);
+        document.title = `${channel.name} · StreamPK`;
+    },
+
+    /**
+     * Shows a quick-switch strip of other channels from the same category
+     * (topped up with other channels if the category is small).
+     * @param {Channel} channel - Currently playing channel
+     * @private
+     */
+    renderMore(channel) {
+        const LIMIT = 6;
+        const others = ChannelManager.getActiveChannels().filter(ch => ch.id !== channel.id);
+        const same = others.filter(ch => ch.category === channel.category);
+        const picks = [...same, ...others.filter(ch => ch.category !== channel.category)].slice(0, LIMIT);
+
+        if (picks.length === 0) {
+            this.elements.moreRow.hidden = true;
+            return;
+        }
+
+        this.elements.moreTitle.textContent = same.length >= 3 ? `More in ${channel.category}` : 'More channels';
+        this.elements.moreGrid.innerHTML = picks.map(ch => `
+            <button class="more-card" type="button" data-channel-id="${escapeHtml(ch.id)}">
+                ${this.logoHtml(ch, '')}
+                <span class="ch-text">
+                    <span class="ch-name">${escapeHtml(ch.name)}</span>
+                    <span class="ch-sub">CH ${String(ch.number).padStart(2, '0')}</span>
+                </span>
+            </button>`).join('');
+        this.elements.moreRow.hidden = false;
+    },
+
+    /**
+     * Syncs the now-playing star button with the current channel's favorite state.
+     * @private
+     */
+    renderFavButton() {
+        const channel = VideoPlayer.getCurrentChannel();
+        const isFav = channel ? FavoritesManager.isFavorite(channel.id) : false;
+        this.elements.favBtn.setAttribute('aria-pressed', String(isFav));
+        this.elements.favBtn.setAttribute('aria-label', isFav ? 'Remove from favorites' : 'Add to favorites');
+        this.elements.favBtn.querySelector('use').setAttribute('href', isFav ? '#i-star' : '#i-star-line');
+    },
+
+    /* ------------------------------------------------------------------ */
+    /* Actions                                                             */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Plays a channel and updates the URL and UI.
+     * @param {string} channelId
+     */
     playChannel(channelId) {
         const channel = ChannelManager.getChannelById(channelId);
         if (!channel) return;
 
-        if (!channel.stream && !channel.embed) {
-            alert('This channel does not have a stream URL configured yet.');
+        if (!ChannelManager.isPlayable(channel)) {
+            this.showToast(`${channel.name} is offline right now`);
             return;
         }
 
         VideoPlayer.loadChannel(channel);
+        this.renderNowPlaying(channel);
 
         // Update browser URL with channel parameter
         const url = new URL(window.location);
         url.searchParams.set('channel', channelId);
         history.replaceState(null, '', url);
 
-        // Update active state in UI
-        this.channelCards.forEach(card => {
-            card.classList.toggle('active', card.dataset.channelId === channelId);
+        // Update playing state in the guide
+        this.elements.channelGrid.querySelectorAll('.ch-row').forEach(row => {
+            const playing = row.dataset.channelId === channelId;
+            row.classList.toggle('is-playing', playing);
+            const btn = row.querySelector('.ch-play');
+            if (playing) btn.setAttribute('aria-current', 'true');
+            else btn.removeAttribute('aria-current');
         });
 
-        // Update selected index
-        const cardIndex = this.channelCards.findIndex(card => card.dataset.channelId === channelId);
-        if (cardIndex !== -1) {
-            this.selectedIndex = cardIndex;
+        const cardIndex = this.channelCards.findIndex(row => row.dataset.channelId === channelId);
+        if (cardIndex !== -1) this.selectedIndex = cardIndex;
+    },
+
+    /**
+     * Plays the next (+1) or previous (-1) playable channel.
+     * @param {number} step
+     */
+    stepChannel(step) {
+        const current = VideoPlayer.getCurrentChannel();
+        const next = ChannelManager.getAdjacentChannel(current ? current.id : null, step);
+        if (next) {
+            this.playChannel(next.id);
+            this.scrollRowIntoView(next.id);
         }
     },
 
-    // Toggle favorite
+    /**
+     * Toggles a channel's favorite state and refreshes the UI.
+     * @param {string} channelId
+     */
     toggleFavorite(channelId) {
+        const channel = ChannelManager.getChannelById(channelId);
         const isFavorite = FavoritesManager.toggleFavorite(channelId);
 
-        // Update button in channel grid
-        const btn = this.elements.channelGrid.querySelector(`.favorite-btn[data-channel-id="${channelId}"]`);
-        if (btn) {
-            btn.classList.toggle('is-favorite', isFavorite);
-            btn.title = isFavorite ? 'Remove from favorites' : 'Add to favorites';
-        }
+        const scroll = this.elements.channelGrid.scrollTop;
+        this.renderCategoryTabs();
+        this.renderChannels();
+        this.elements.channelGrid.scrollTop = scroll;
+        this.renderFavButton();
 
-        // Re-render favorites section
-        this.renderFavorites();
+        if (channel) {
+            this.showToast(isFavorite ? `Added ${channel.name} to favorites` : `Removed ${channel.name} from favorites`);
+        }
     },
 
-    // Render favorites section
-    renderFavorites() {
-        const favorites = FavoritesManager.getFavoriteChannels();
+    /**
+     * Toggles favorite for the playing channel, or the keyboard-selected one.
+     */
+    toggleCurrentFavorite() {
+        const current = VideoPlayer.getCurrentChannel();
+        let channelId = current ? current.id : null;
+        if (!channelId && this.selectedIndex >= 0 && this.channelCards[this.selectedIndex]) {
+            channelId = this.channelCards[this.selectedIndex].dataset.channelId;
+        }
+        if (channelId) this.toggleFavorite(channelId);
+    },
 
-        if (favorites.length === 0) {
-            this.elements.favoritesSection.classList.remove('has-favorites');
-            this.elements.favoritesGrid.innerHTML = '';
+    /**
+     * Shares the currently playing channel via Web Share API or clipboard.
+     * Generates a deep link URL with the channel ID parameter.
+     */
+    async shareChannel() {
+        const channel = VideoPlayer.getCurrentChannel();
+        if (!channel) {
+            this.showToast('Pick a channel first');
             return;
         }
 
-        this.elements.favoritesSection.classList.add('has-favorites');
+        const shareUrl = `${window.location.origin}${window.location.pathname}?channel=${encodeURIComponent(channel.id)}`;
 
-        this.elements.favoritesGrid.innerHTML = favorites.map(channel => `
-            <div class="favorite-card" data-channel-id="${channel.id}">
-                <div class="channel-logo">
-                    ${channel.logo
-                        ? `<img src="${channel.logo}" alt="${channel.name}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-tv\\'></i>'">`
-                        : '<i class="fas fa-tv"></i>'}
-                </div>
-                <span class="channel-name" title="${channel.name}">${channel.name}</span>
-            </div>
-        `).join('');
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: `${channel.name} · StreamPK`, url: shareUrl });
+            } catch (e) { /* user cancelled */ }
+            return;
+        }
 
-        // Add click handlers
-        this.elements.favoritesGrid.querySelectorAll('.favorite-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const channelId = card.dataset.channelId;
-                this.playChannel(channelId);
-            });
-        });
+        if (await this.copyToClipboard(shareUrl)) {
+            this.showToast('Link copied to clipboard');
+        } else {
+            prompt('Copy this link:', shareUrl);
+        }
     },
 
-    // Handle keyboard navigation
+    /**
+     * Copies text to the clipboard.
+     * @param {string} text
+     * @returns {Promise<boolean>} Whether the copy succeeded
+     * @private
+     */
+    async copyToClipboard(text) {
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+        } catch (e) { /* fall through to legacy copy */ }
+
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        document.body.removeChild(textarea);
+        return ok;
+    },
+
+    /**
+     * Shows a short message at the bottom of the screen.
+     * @param {string} message
+     */
+    showToast(message) {
+        const toast = this.elements.toast;
+        toast.textContent = message;
+        toast.classList.add('is-visible');
+        clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 2200);
+    },
+
+    /* ------------------------------------------------------------------ */
+    /* Keyboard                                                            */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Handles global keyboard shortcuts.
+     * @param {KeyboardEvent} e
+     * @private
+     */
     handleKeyboard(e) {
-        // Ignore if typing in an input
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+        const target = e.target;
+        const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+        if (isTyping) {
+            if (e.key === 'Escape' && target === this.elements.searchInput) {
+                if (target.value) {
+                    target.value = '';
+                    this.query = '';
+                    this.renderChannels();
+                } else {
+                    target.blur();
+                }
+            } else if (e.key === 'ArrowDown' && target === this.elements.searchInput && this.channelCards.length) {
+                e.preventDefault();
+                target.blur();
+                this.navigateChannels(1);
+            } else if (e.key === 'Enter' && target === this.elements.searchInput && this.channelCards.length) {
+                this.playChannel(this.channelCards[0].dataset.channelId);
+            }
             return;
         }
 
-        const totalCards = this.channelCards.length;
-        if (totalCards === 0) return;
+        const onButton = target.tagName === 'BUTTON' || target.tagName === 'A';
 
         switch (e.key) {
             case 'ArrowUp':
-            case 'ArrowLeft':
                 e.preventDefault();
                 this.navigateChannels(-1);
                 break;
             case 'ArrowDown':
-            case 'ArrowRight':
                 e.preventDefault();
                 this.navigateChannels(1);
                 break;
             case 'Enter':
-                e.preventDefault();
-                if (this.selectedIndex >= 0 && this.selectedIndex < totalCards) {
-                    const channelId = this.channelCards[this.selectedIndex].dataset.channelId;
-                    this.playChannel(channelId);
+                if (onButton) return; // let the focused button handle it
+                if (this.selectedIndex >= 0 && this.channelCards[this.selectedIndex]) {
+                    e.preventDefault();
+                    this.playChannel(this.channelCards[this.selectedIndex].dataset.channelId);
                 }
+                break;
+            case '[':
+                this.stepChannel(-1);
+                break;
+            case ']':
+                this.stepChannel(1);
                 break;
             case 'f':
             case 'F':
                 e.preventDefault();
                 this.toggleCurrentFavorite();
                 break;
+            case '/':
+                e.preventDefault();
+                this.elements.searchInput.focus();
+                this.elements.searchInput.select();
+                break;
             case ' ':
+                if (onButton) return;
                 e.preventDefault();
                 VideoPlayer.togglePlay();
                 break;
             default:
-                // Number keys 1-9 for quick select
-                const num = parseInt(e.key);
-                if (num >= 1 && num <= 9 && num <= totalCards) {
+                if (/^[0-9]$/.test(e.key)) {
                     e.preventDefault();
-                    const channelId = this.channelCards[num - 1].dataset.channelId;
-                    this.playChannel(channelId);
-                    this.selectedIndex = num - 1;
-                    this.updateSelectedState();
+                    this.handleDigit(e.key);
                 }
                 break;
         }
     },
 
-    // Navigate channels with keyboard
+    /**
+     * TV-remote style channel entry: type "7" for CH 7, or "1" then "2" for CH 12.
+     * @param {string} digit
+     * @private
+     */
+    handleDigit(digit) {
+        clearTimeout(this.digitTimer);
+        this.digitBuffer = (this.digitBuffer + digit).slice(-2);
+
+        const max = ChannelManager.getActiveChannelCount();
+        const typed = parseInt(this.digitBuffer, 10);
+
+        const commit = () => {
+            const n = parseInt(this.digitBuffer, 10);
+            this.digitBuffer = '';
+            const channel = ChannelManager.getChannelByNumber(n);
+            if (channel) {
+                this.playChannel(channel.id);
+                this.scrollRowIntoView(channel.id);
+            } else {
+                this.showToast(`No channel ${n}`);
+            }
+        };
+
+        // Wait for a second digit only if one could still form a valid number
+        if (this.digitBuffer.length === 1 && typed * 10 <= max) {
+            this.showToast(`Channel ${this.digitBuffer}_`);
+            this.digitTimer = setTimeout(commit, 900);
+        } else {
+            commit();
+        }
+    },
+
+    /**
+     * Moves the keyboard cursor through playable rows.
+     * @param {number} direction - +1 or -1
+     */
     navigateChannels(direction) {
-        const totalCards = this.channelCards.length;
+        const total = this.channelCards.length;
+        if (total === 0) return;
 
         if (this.selectedIndex === -1) {
-            this.selectedIndex = direction === 1 ? 0 : totalCards - 1;
+            const playingIndex = this.channelCards.findIndex(r => r.classList.contains('is-playing'));
+            this.selectedIndex = playingIndex !== -1
+                ? (playingIndex + direction + total) % total
+                : (direction === 1 ? 0 : total - 1);
         } else {
-            this.selectedIndex += direction;
-            if (this.selectedIndex < 0) this.selectedIndex = totalCards - 1;
-            if (this.selectedIndex >= totalCards) this.selectedIndex = 0;
+            this.selectedIndex = (this.selectedIndex + direction + total) % total;
         }
 
-        this.updateSelectedState();
-        this.scrollToSelected();
+        this.channelCards.forEach((row, i) => row.classList.toggle('is-selected', i === this.selectedIndex));
+        this.channelCards[this.selectedIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     },
 
-    // Update selected visual state
-    updateSelectedState() {
-        this.channelCards.forEach((card, index) => {
-            card.classList.toggle('selected', index === this.selectedIndex);
-        });
-    },
-
-    // Scroll to selected card
-    scrollToSelected() {
-        if (this.selectedIndex >= 0 && this.selectedIndex < this.channelCards.length) {
-            this.channelCards[this.selectedIndex].scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest'
-            });
+    /**
+     * Scrolls the guide so a channel's row is visible.
+     * @param {string} channelId
+     * @private
+     */
+    scrollRowIntoView(channelId) {
+        const row = this.channelCards.find(r => r.dataset.channelId === channelId);
+        if (row && window.matchMedia('(min-width: 1025px)').matches) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     },
 
-    // Toggle favorite for current/selected channel
-    toggleCurrentFavorite() {
-        let channelId = null;
-
-        // If a channel is playing, toggle that
-        const currentChannel = VideoPlayer.getCurrentChannel();
-        if (currentChannel) {
-            channelId = currentChannel.id;
-        }
-        // Otherwise toggle the selected channel
-        else if (this.selectedIndex >= 0 && this.selectedIndex < this.channelCards.length) {
-            channelId = this.channelCards[this.selectedIndex].dataset.channelId;
-        }
-
-        if (channelId) {
-            this.toggleFavorite(channelId);
-        }
-    },
-
-    // Auto-play first available channel on load
+    /**
+     * Plays the channel from ?channel=, else the default, else the first playable one.
+     * @private
+     */
     autoPlayFirstChannel() {
-        // Check for channel in URL parameter first
         const urlParams = new URLSearchParams(window.location.search);
-        const channelId = urlParams.get('channel');
-
-        if (channelId) {
-            const channel = ChannelManager.getChannelById(channelId);
-            if (channel && (channel.stream || channel.embed)) {
-                console.log('Playing channel from URL:', channelId);
-                this.playChannel(channelId);
-                return;
-            } else {
-                console.log('Channel not found or has no stream:', channelId);
-            }
+        const fromUrl = ChannelManager.getChannelById(urlParams.get('channel'));
+        if (fromUrl && ChannelManager.isPlayable(fromUrl)) {
+            this.playChannel(fromUrl.id);
+            this.scrollRowIntoView(fromUrl.id);
+            return;
         }
 
-        // Otherwise play Dunya News as default channel
-        const defaultChannel = ChannelManager.getChannelById('dunya-news');
-        if (defaultChannel && (defaultChannel.stream || defaultChannel.embed)) {
-            console.log('Playing default channel: dunya-news');
-            this.playChannel('dunya-news');
-        } else {
-            // Fallback to first available channel if Dunya News not available
-            const activeChannels = ChannelManager.getActiveChannels();
-            if (activeChannels.length > 0) {
-                console.log('Playing first active channel:', activeChannels[0].id);
-                this.playChannel(activeChannels[0].id);
-            }
+        const fallback = ChannelManager.getChannelById(this.DEFAULT_CHANNEL);
+        if (fallback && ChannelManager.isPlayable(fallback)) {
+            this.playChannel(fallback.id);
+            return;
         }
+
+        const first = ChannelManager.getActiveChannels()[0];
+        if (first) this.playChannel(first.id);
     }
 };
 

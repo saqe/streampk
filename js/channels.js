@@ -114,6 +114,7 @@ const ChannelManager = {
             }
             const content = await response.text();
             this.channels = this.parseM3U8(content);
+            this.assignNumbers();
             this.loaded = true;
             console.log(`Loaded ${this.channels.length} channels from playlist.m3u8`);
         } catch (error) {
@@ -126,6 +127,71 @@ const ChannelManager = {
     },
 
     /**
+     * Preferred display order for categories. Unknown categories go last, alphabetically.
+     * @type {string[]}
+     * @constant
+     */
+    CATEGORY_ORDER: ['News', 'Entertainment', 'Sports', 'Religious'],
+
+    /**
+     * Whether a channel has something the browser can play (HLS stream or embed).
+     * @param {Channel} channel
+     * @returns {boolean}
+     */
+    isPlayable(channel) {
+        return Boolean((channel.stream && channel.stream.length > 0) || channel.embed);
+    },
+
+    /**
+     * Sorts channels into guide order (by category, playable first) and gives each
+     * playable channel a stable 1-based number, like a TV channel number.
+     * @private
+     */
+    assignNumbers() {
+        const rank = (cat) => {
+            const i = this.CATEGORY_ORDER.indexOf(cat);
+            return i === -1 ? this.CATEGORY_ORDER.length : i;
+        };
+        const ordered = this.channels
+            .map((ch, index) => ({ ch, index }))
+            .sort((a, b) =>
+                (this.isPlayable(b.ch) - this.isPlayable(a.ch)) ||
+                (rank(a.ch.category) - rank(b.ch.category)) ||
+                (a.ch.category || '').localeCompare(b.ch.category || '') ||
+                (a.index - b.index))
+            .map(({ ch }) => ch);
+
+        let number = 0;
+        ordered.forEach(ch => {
+            ch.number = this.isPlayable(ch) ? ++number : null;
+        });
+        this.channels = ordered;
+    },
+
+    /**
+     * Finds a playable channel by its guide number.
+     * @param {number} number
+     * @returns {Channel|undefined}
+     */
+    getChannelByNumber(number) {
+        return this.channels.find(ch => ch.number === number);
+    },
+
+    /**
+     * Gets the playable channel `step` positions away from the given one, wrapping around.
+     * @param {string} channelId - Current channel ID
+     * @param {number} step - +1 for next, -1 for previous
+     * @returns {Channel|undefined}
+     */
+    getAdjacentChannel(channelId, step) {
+        const playable = this.getActiveChannels();
+        if (playable.length === 0) return undefined;
+        const i = playable.findIndex(ch => ch.id === channelId);
+        const next = i === -1 ? 0 : (i + step + playable.length) % playable.length;
+        return playable[next];
+    },
+
+    /**
      * Gets all loaded channels.
      * @returns {Channel[]} Array of all channel objects
      */
@@ -135,11 +201,15 @@ const ChannelManager = {
 
     /**
      * Gets all unique categories from loaded channels.
-     * @returns {string[]} Alphabetically sorted array of category names
+     * @returns {string[]} Category names in guide order
      */
     getCategories() {
-        const categories = [...new Set(this.channels.map(ch => ch.category))];
-        return categories.sort();
+        const categories = [...new Set(this.channels.map(ch => ch.category).filter(Boolean))];
+        const rank = (cat) => {
+            const i = this.CATEGORY_ORDER.indexOf(cat);
+            return i === -1 ? this.CATEGORY_ORDER.length : i;
+        };
+        return categories.sort((a, b) => (rank(a) - rank(b)) || a.localeCompare(b));
     },
 
     /**
@@ -164,11 +234,11 @@ const ChannelManager = {
     },
 
     /**
-     * Gets channels that have valid stream URLs.
-     * @returns {Channel[]} Array of channels with non-empty stream property
+     * Gets channels that can be played (HLS stream or embed), in guide order.
+     * @returns {Channel[]} Array of playable channels
      */
     getActiveChannels() {
-        return this.channels.filter(ch => ch.stream && ch.stream.length > 0);
+        return this.channels.filter(ch => this.isPlayable(ch));
     },
 
     /**
