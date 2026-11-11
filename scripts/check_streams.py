@@ -2,6 +2,7 @@
 """Check every connection referenced by the playlist(s): HLS streams, iframe/YouTube
 embeds and channel logos. Reports failing ones and exits non-zero if any fail.
 
+Requires: pip install -r scripts/requirements.txt
 Usage: scripts/check_streams.py [playlist ...] [--json out.json] [--summary out.md]
                                 [--timeout 15] [--workers 16] [--strict]
 
@@ -13,16 +14,13 @@ Status meanings:
 import argparse
 import json
 import re
-import ssl
 import time
 import sys
-import urllib.error
 import urllib.parse
-import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
-UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-      "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
+from curl_cffi import requests
+
 RESTRICTED = {401, 403, 429, 451}
 
 
@@ -54,25 +52,37 @@ def parse_playlist(path):
     return channels, problems
 
 
-def fetch(url, timeout, method="GET", max_bytes=256 * 1024):
-    """Return (status, content_type, body_bytes, error). Retries on transient errors and 429."""
+def fetch(url, timeout, max_bytes=256 * 1024):
+    """Return (status, content_type, body_bytes, error). Retries on 5xx/network errors and 429.
+
+    Uses curl_cffi to impersonate Chrome's TLS/HTTP fingerprint, since some CDNs
+    (e.g. Wikimedia) rate-limit or block plain Python HTTP clients from CI.
+    """
     err = None
     for attempt in range(3):
-        req = urllib.request.Request(url, method=method, headers={"User-Agent": UA, "Accept": "*/*"})
         try:
-            with urllib.request.urlopen(req, timeout=timeout, context=ssl.create_default_context()) as r:
-                body = r.read(max_bytes) if method == "GET" else b""
-                return r.status, r.headers.get("Content-Type", ""), body, None
-        except urllib.error.HTTPError as e:
-            if e.code == 429 and attempt < 2:  # rate limited: back off, then retry
-                time.sleep(3 * (attempt + 1))
-                err = "HTTP 429"
-                continue
-            if e.code < 500:
-                return e.code, e.headers.get("Content-Type", ""), b"", None
-            err = f"HTTP {e.code}"
+            r = requests.get(url, timeout=timeout, impersonate="chrome", stream=True,
+                             headers={"Accept": "*/*"})
+            try:
+                code, ctype = r.status_code, r.headers.get("Content-Type", "")
+                if code == 429 and attempt < 2:  # rate limited: back off, then retry
+                    time.sleep(3 * (attempt + 1))
+                    err = "HTTP 429"
+                    continue
+                if code >= 500:
+                    err = f"HTTP {code}"
+                    continue
+                body = b""
+                if code == 200:
+                    for chunk in r.iter_content():
+                        body += chunk
+                        if len(body) >= max_bytes:
+                            break
+                return code, ctype, body[:max_bytes], None
+            finally:
+                r.close()
         except Exception as e:  # DNS, TLS, timeout, reset...
-            err = f"{type(e).__name__}: {getattr(e, 'reason', e)}"
+            err = f"{type(e).__name__}: {e}"
     return None, "", b"", err
 
 
