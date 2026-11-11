@@ -1,0 +1,59 @@
+name: Check streams
+
+on:
+  pull_request:
+    paths: ["playlist.m3u8", "scripts/check_streams.py", ".github/workflows/check-streams.yml"]
+  push:
+    branches: [main]
+    paths: ["playlist.m3u8", "scripts/check_streams.py", ".github/workflows/check-streams.yml"]
+  schedule:
+    - cron: "0 */6 * * *" # streams die without any commit, so re-check regularly
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scripts/requirements.txt
+      - name: Check HLS streams, embeds and logos
+        run: python scripts/check_streams.py playlist.m3u8 --json report.json --summary "$GITHUB_STEP_SUMMARY"
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stream-report
+          path: report.json
+          if-no-files-found: ignore
+      - name: Open or update issue on scheduled failure
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY' > body.md
+          import json
+          d = json.load(open("report.json"))
+          print("Scheduled stream check found broken connections.\n")
+          print("| Type | Channel | Detail | URL |\n|---|---|---|---|")
+          for r in d["results"]:
+              if r["status"] == "fail":
+                  print(f"| {r['kind']} | {r['channel']} | {r['detail']} | `{r['url']}` |")
+          for p in d["playlist_problems"]:
+              print(f"\n- {p}")
+          print(f"\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+          PY
+          n=$(gh issue list --label broken-streams --state open --json number -q '.[0].number')
+          if [ -n "$n" ]; then
+            gh issue comment "$n" --body-file body.md
+          else
+            gh label create broken-streams --color D93F0B 2>/dev/null || true
+            gh issue create --title "Broken streams detected" --label broken-streams --body-file body.md
+          fi
